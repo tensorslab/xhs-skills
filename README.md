@@ -1,4 +1,4 @@
-# 📕 md2Redbook
+# 📕 Auto-Redbook-Skills
 
 > 一个自动撰写笔记、生成图片、自动发布小红书的 Skills
 
