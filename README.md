@@ -1,165 +1,151 @@
-# 📕 Auto-Redbook-Skills
+## 📕 Auto-Redbook-Skills（已重构版）
 
-> 一个自动撰写笔记、生成图片、自动发布小红书的 Skills
-
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+> 自动撰写小红书笔记、生成多主题卡片、可选自动发布的 Skills  
+> 当前版本对渲染脚本和样式系统做了**一次完整重构**，感谢 Cursor 的辅助开发 🙌
 
 ---
 
-## 🆕 v2.0 版本更新
+## ✨ 本次重构亮点
 
-### ✨ 新增功能
-
-- **🚀 智能分页渲染** - 自动检测内容高度，超出时自动拆分到多张卡片，彻底解决文字溢出问题
-- **🎨 7种可选样式** - 新增多种主题风格，一键切换不同视觉效果
-- **⚡ V2 渲染脚本** - 全新 `render_xhs_v2.py` / `render_xhs_v2.js`，推荐升级使用
-
-### 📋 可用样式列表
-
-| 样式 | 名称 | 预览 |
-|------|------|------|
-| `purple` | 紫韵（默认）| 蓝紫色渐变 |
-| `xiaohongshu` | 小红书红 | 品牌红色系 |
-| `mint` | 清新薄荷 | 绿色自然调 |
-| `sunset` | 日落橙 | 粉橙浪漫调 |
-| `ocean` | 深海蓝 | 海洋蓝色调 |
-| `elegant` | 优雅白 | 灰白简约调 |
-| `dark` | 暗黑模式 | 深色高对比 |
-
-### 🎯 使用 V2 脚本
-
-```bash
-# Python 版本
-python scripts/render_xhs_v2.py note.md --style sunset
-
-# Node.js 版本
-node scripts/render_xhs_v2.js note.md --style ocean
-
-# 查看所有样式
-python scripts/render_xhs_v2.py --list-styles
-```
-
-### 📁 v2.0 新增文件
-
-```
-scripts/
-├── render_xhs_v2.py    # 新增：Python 智能分页版（推荐）
-├── render_xhs_v2.js    # 新增：Node.js 智能分页版（推荐）
-├── render_xhs.py       # 旧版：保留兼容
-└── render_xhs.js       # 旧版：保留兼容
-STYLES.md               # 新增：样式选择指南
-```
-
-**注：V1 旧版脚本保留兼容，V2 版本完全向下兼容 Markdown 格式。**
+- **🎨 8 套主题皮肤**：默认简约灰 + Playful Geometric / Neo-Brutalism / Botanical / Professional / Retro / Terminal / Sketch
+- **📐 4 种分页模式**：
+  - `separator`：按 `---` 分隔手动分页
+  - `auto-fit`：固定尺寸，自动整体缩放内容，避免溢出/大面积留白
+  - `auto-split`：根据渲染后高度自动拆分为多张卡片
+  - `dynamic`：根据内容动态调整图片高度
+- **🧱 统一卡片结构**：外层浅灰背景（`card-container`）+ 内层主题背景（`card-inner`）+ 纯排版层（`card-content`）
+- **🧠 封面与正文一体化**：封面背景、标题渐变和正文卡片背景都按主题自动匹配
 
 ---
 
-## ✨ 功能特性
+## 🖼 主题效果示例（来自 `demos`）
 
-- 📝 **撰写笔记** - 根据既定主题，撰写小红书笔记（提示词自己调整，在 `SKILL.md`里）
-- 🎨 **生成卡片** - 根据内容自动渲染生成图片，包含 cover 和内容详情，支持 Markdown 渲染
-- 🐍 **双语言脚本** - 提供 Python 和 Node.js 两种渲染方案
-- 📤 **一键发布** - 支持直接发布到小红书（需配置 Cookie）
+> 所有示例均为 1080×1440px，小红书推荐 3:4 比例
 
+### Playful Geometric（活泼几何）
 
-## 🚀 快速开始
+![Playful Geometric](demos/playful-geometric/card_1.png)
 
-### Clone 项目
+### Retro（复古怀旧）
 
-Clone 项目到本地
+![Retro](demos/retro/card_1.png)
+
+### Sketch（手绘素描）
+
+> 注意：该目录在 demos 中是大写 `Sketch`
+
+![Sketch](demos/Sketch/card_1.png)
+
+### Terminal（终端风格）
+
+![Terminal](demos/terminal/card_1.png)
+
+### Auto-fit 模式示例（自动缩放）
+
+![Auto Fit](demos/auto-fit/card_1.png)
+
+---
+
+## 🚀 使用方式总览
+
+### 1. 克隆项目
 
 ```bash
-
-git clone https://github.com/comeonzhj/Auto-Redbook-Skills.git					 
-
+git clone https://github.com/comeonzhj/Auto-Redbook-Skills.git
+cd Auto-Redbook-Skills
 ```
 
-移动到支持 Skills 的客户端对应文件夹里：
+可以将本项目放到支持 Skills 的客户端目录，例如：
 
-- For Claude ： `~/.claude/skills/`
-- For Alma： `~/.config/Alma/skills/`
-- For TRAE： `/your-path/.trae/skills/`
+- Claude：`~/.claude/skills/`
+- Alma：`~/.config/Alma/skills/`
+- TRAE：`/your-path/.trae/skills/`
 
-### 安装依赖
+### 2. 安装依赖
 
-**Python 版本：**
+**Python：**
 
 ```bash
-pip install markdown pyyaml playwright python-dotenv xhs
+pip install -r requirements.txt
 playwright install chromium
 ```
 
-**Node.js 版本：**
+**Node.js：**
 
 ```bash
-cd Auto-Redbook-Skills
 npm install
 npx playwright install chromium
 ```
 
-## 🎨 渲染图片
+---
 
-### V2 渲染（推荐）
+## 🎨 渲染图片（Python）
 
-```bash
-# 使用默认样式
-python scripts/render_xhs_v2.py note.md
-
-# 指定样式主题
-python scripts/render_xhs_v2.py note.md --style sunset
-
-# 指定输出目录
-python scripts/render_xhs_v2.py note.md -o ./output --style xiaohongshu
-
-# 查看所有样式
-python scripts/render_xhs_v2.py --list-styles
-```
-
-**V2 特性：**
-- 智能分页：自动检测内容高度，自动拆分卡片
-- 固定尺寸：所有卡片固定 1080×1440px
-- 多种样式：7种预设主题风格
-
-### V1 渲染（旧版）
+核心脚本：`scripts/render_xhs.py`
 
 ```bash
-# Python 版本
-python scripts/render_xhs.py note.md
+# 最简单用法（默认主题 + 手动分页）
+python scripts/render_xhs.py demos/content.md
 
-# Node.js 版本
-node scripts/render_xhs.js note.md
+# 使用自动分页（推荐：内容长短难控）
+python scripts/render_xhs.py demos/content.md -m auto-split
+
+# 使用固定尺寸自动缩放（auto-fit）
+python scripts/render_xhs.py demos/content_auto_fit.md -m auto-fit
+
+# 切换主题（例如 Playful Geometric）
+python scripts/render_xhs.py demos/content.md -t playful-geometric -m auto-split
+
+# 自定义尺寸和像素比
+python scripts/render_xhs.py demos/content.md -t retro -m dynamic --width 1080 --height 1440 --max-height 2160 --dpr 2
 ```
 
-**注意：** V1 版本当内容过长时可能出现溢出，建议手动使用 `---` 分隔内容。
+**主要参数：**
+
+| 参数 | 简写 | 说明 |
+|------|------|------|
+| `--theme` | `-t` | 主题：`default`、`playful-geometric`、`neo-brutalism`、`botanical`、`professional`、`retro`、`terminal`、`sketch` |
+| `--mode` | `-m` | 分页模式：`separator` / `auto-fit` / `auto-split` / `dynamic` |
+| `--width` | `-w` | 图片宽度（默认 1080） |
+| `--height` |  | 图片高度（默认 1440，`dynamic` 为最小高度） |
+| `--max-height` |  | `dynamic` 模式最大高度（默认 2160） |
+| `--dpr` |  | 设备像素比，控制清晰度（默认 2） |
+
+> 生成结果会包含：封面 `cover.png` + 正文卡片 `card_1.png`、`card_2.png`...
+
+---
+
+## 🎨 渲染图片（Node.js）
+
+脚本：`scripts/render_xhs.js`，参数与 Python 基本一致：
+
+```bash
+# 默认主题 + 手动分页
+node scripts/render_xhs.js demos/content.md
+
+# 指定主题 + 自动分页
+node scripts/render_xhs.js demos/content.md -t terminal -m auto-split
+```
+
+---
 
 ## 📤 发布到小红书
 
 ### 1. 配置 Cookie
 
-复制 `env.example.txt` 为 `.env`，填入小红书 Cookie：
-
 ```bash
 cp env.example.txt .env
 ```
 
-编辑 `.env` 文件：
+编辑 `.env`：
 
-```
+```env
 XHS_COOKIE=your_cookie_string_here
 ```
 
-**获取 Cookie 方法：**
+> 获取方式：浏览器登录小红书 → F12 → Network → 任意请求的 Cookie 头，复制整串。
 
-1. 在浏览器中登录 [小红书](https://www.xiaohongshu.com)
-2. 打开开发者工具（F12）
-3. 在 Network 标签中查看任意请求的 Cookie 头
-4. 复制完整的 cookie 字符串
-
-### 2. 发布笔记
-
-Skills 会自动发布，也可以手动执行：
+### 2. 手动发布（可选）
 
 ```bash
 python scripts/publish_xhs.py \
@@ -174,78 +160,67 @@ python scripts/publish_xhs.py \
 |------|------|
 | `--private` | 设为私密笔记 |
 | `--post-time "2024-01-01 12:00:00"` | 定时发布 |
+| `--api-mode` | 通过 xhs-api 服务发布 |
 | `--dry-run` | 仅验证，不实际发布 |
 
-## 🎨 自定义样式
+---
 
-### 修改背景渐变（V1）
-
-编辑 `assets/card.html` 中的 `.card-container`：
-
-```css
-.card-container {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-```
-
-**预设渐变色：**
-
-| 名称 | 渐变值 |
-|------|--------|
-| 紫蓝 | `#667eea → #764ba2` |
-| 粉红 | `#f093fb → #f5576c` |
-| 青蓝 | `#4facfe → #00f2fe` |
-| 绿色 | `#43e97b → #38f9d7` |
-| 橙黄 | `#fa709a → #fee140` |
-
-### 更多样式选择（V2）
-
-V2 版本提供 7 种内置样式，通过 `--style` 参数快速切换：
+## 📁 项目结构（重构后）
 
 ```bash
-python scripts/render_xhs_v2.py note.md --style dark   # 暗黑模式
-python scripts/render_xhs_v2.py note.md --style mint   # 清新薄荷
-```
-
-详见 [STYLES.md](./STYLES.md)
-
-## 📁 项目结构
-
-```
-md2Redbook/
-├── SKILL.md              # 技能描述（AI Agent 使用）
-├── README.md             # 项目文档
-├── STYLES.md             # 样式选择指南
+Auto-Redbook-Skills/
+├── SKILL.md              # 技能描述（Agent 使用说明）
+├── README.md             # 项目文档（你现在看到的）
 ├── requirements.txt      # Python 依赖
 ├── package.json          # Node.js 依赖
 ├── env.example.txt       # Cookie 配置示例
 ├── assets/
 │   ├── cover.html        # 封面 HTML 模板
 │   ├── card.html         # 正文卡片 HTML 模板
-│   ├── styles.css        # 共用样式表
+│   ├── styles.css        # 共用容器样式（cover-inner / card-inner 等）
 │   └── example.md        # 示例 Markdown
+├── assets/themes/        # 主题样式（只控制排版 & 内层背景）
+│   ├── default.css
+│   ├── playful-geometric.css
+│   ├── neo-brutalism.css
+│   ├── botanical.css
+│   ├── professional.css
+│   ├── retro.css
+│   ├── terminal.css
+│   └── sketch.css
+├── demos/                # 各主题示例渲染结果
+│   ├── content.md
+│   ├── content_auto_fit.md
+│   ├── auto-fit/
+│   ├── playful-geometric/
+│   ├── retro/
+│   ├── Sketch/
+│   └── terminal/
 └── scripts/
-    ├── render_xhs_v2.py  # Python 渲染脚本 V2（推荐）
-    ├── render_xhs_v2.js  # Node.js 渲染脚本 V2（推荐）
-    ├── render_xhs.py     # Python 渲染脚本 V1
-    ├── render_xhs.js     # Node.js 渲染脚本 V1
+    ├── render_xhs.py     # Python 渲染脚本（支持主题 + 分页模式）
+    ├── render_xhs.js     # Node.js 渲染脚本
     └── publish_xhs.py    # 小红书发布脚本
 ```
 
+---
 
 ## ⚠️ 注意事项
 
-1. **Cookie 安全** - Cookie 包含登录凭证，请勿泄露或提交到版本控制
-2. **Cookie 有效期** - 小红书 Cookie 会过期，需定期更新
-3. **发布频率** - 避免频繁发布，以免触发平台限制
-4. **图片尺寸** - 渲染的图片为 1080×1440px，符合小红书推荐比例
+1. **Cookie 安全**：不要把 `.env` 提交到 Git 或共享出去。
+2. **Cookie 有效期**：过期后发布失败是正常现象，重新抓一次 Cookie 即可。
+3. **发布频率**：避免短时间内高频发布，以免触发平台风控。
+4. **图片尺寸**：默认 1080×1440px，符合小红书推荐比例。
+
+---
 
 ## 🙏 致谢
 
 - [Playwright](https://playwright.dev/) - 浏览器自动化渲染
 - [Marked](https://marked.js.org/) - Markdown 解析
-- [Madopic](https://github.com/xiaolinbaba/Madopic) - Markdown 渲染  
 - [xhs](https://github.com/ReaJason/xhs) - 小红书 API 客户端
+- **Cursor** - 本次重构过程中提供了极大帮助 ❤️
+
+---
 
 ## 📄 License
 
