@@ -342,7 +342,8 @@ def generate_cover_html(metadata: dict, style_key: str = "purple") -> str:
             background-clip: text;
             flex: 1;
             display: flex; align-items: flex-start;
-            word-break: break-all;
+            word-break: normal;
+            overflow-wrap: break-word;
         }}
         .cover-subtitle {{
             font-weight: 350; font-size: 72px; line-height: 1.4;
@@ -463,7 +464,8 @@ def generate_card_html(content: str, page_number: int = 1, total_pages: int = 1,
             overflow-x: visible;
             overflow-wrap: break-word;
             word-wrap: break-word;
-            word-break: break-all;
+            word-break: normal;
+            overflow-wrap: break-word;
             white-space: pre-wrap;
             font-size: 36px; line-height: 1.5;
         }}
