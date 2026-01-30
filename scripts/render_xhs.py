@@ -148,12 +148,20 @@ def generate_cover_html(metadata: dict, theme: str, width: int, height: int) -> 
     title = metadata.get('title', '标题')
     subtitle = metadata.get('subtitle', '')
     
-    # 限制标题和副标题长度
-    if len(title) > 15:
-        title = title[:15]
-    if len(subtitle) > 15:
-        subtitle = subtitle[:15]
     
+    # 动态调整标题字体大小
+    title_len = len(title)
+    if title_len <= 6:
+        title_size = int(width * 0.14)  # 极大
+    elif title_len <= 10:
+        title_size = int(width * 0.12)  # 大
+    elif title_len <= 18:
+        title_size = int(width * 0.09)  # 中
+    elif title_len <= 30:
+        title_size = int(width * 0.07)  # 小
+    else:
+        title_size = int(width * 0.055) # 极小
+
     # 获取主题背景色
     theme_backgrounds = {
         'default': 'linear-gradient(180deg, #f3f3f3 0%, #f9f9f9 100%)',
@@ -231,7 +239,7 @@ def generate_cover_html(metadata: dict, theme: str, width: int, height: int) -> 
         
         .cover-title {{
             font-weight: 900;
-            font-size: {int(width * 0.12)}px;
+            font-size: {title_size}px;
             line-height: 1.4;
             background: {title_bg};
             -webkit-background-clip: text;
