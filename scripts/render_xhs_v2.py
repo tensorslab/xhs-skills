@@ -295,12 +295,20 @@ def generate_cover_html(metadata: dict, style_key: str = "purple") -> str:
     title = metadata.get('title', '标题')
     subtitle = metadata.get('subtitle', '')
     
-    # 限制标题和副标题长度
-    if len(title) > 15:
-        title = title[:15]
-    if len(subtitle) > 15:
-        subtitle = subtitle[:15]
     
+    # 动态调整标题字体大小
+    title_len = len(title)
+    if title_len <= 6:
+        title_size = 150  # 极大 (width * 0.14)
+    elif title_len <= 10:
+        title_size = 130  # 大 (width * 0.12)
+    elif title_len <= 18:
+        title_size = 100  # 中 (width * 0.09)
+    elif title_len <= 30:
+        title_size = 80   # 小 (width * 0.07)
+    else:
+        title_size = 60   # 极小 (width * 0.055)
+
     # 暗黑模式特殊处理
     is_dark = style_key == "dark"
     text_color = "#ffffff" if is_dark else "#000000"
@@ -335,14 +343,15 @@ def generate_cover_html(metadata: dict, style_key: str = "purple") -> str:
         }}
         .cover-emoji {{ font-size: 180px; line-height: 1.2; margin-bottom: 50px; }}
         .cover-title {{
-            font-weight: 900; font-size: 130px; line-height: 1.4;
+            font-weight: 900; font-size: {title_size}px; line-height: 1.4;
             background: {title_gradient};
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             flex: 1;
             display: flex; align-items: flex-start;
-            word-break: break-all;
+            word-break: normal;
+            overflow-wrap: break-word;
         }}
         .cover-subtitle {{
             font-weight: 350; font-size: 72px; line-height: 1.4;
@@ -463,7 +472,8 @@ def generate_card_html(content: str, page_number: int = 1, total_pages: int = 1,
             overflow-x: visible;
             overflow-wrap: break-word;
             word-wrap: break-word;
-            word-break: break-all;
+            word-break: normal;
+            overflow-wrap: break-word;
             white-space: pre-wrap;
             font-size: 36px; line-height: 1.5;
         }}
