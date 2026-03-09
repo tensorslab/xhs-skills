@@ -1,6 +1,8 @@
 ## 📕 Auto-Redbook-Skills（已重构版）
 
-> **一句话安装此技能**：让你的 Agent 说：「拉取下面的项目，安装其中的技能：https://github.com/comeonzhj/Auto-Redbook-Skills 」
+**一句话安装此技能**，跟你的 Agent 说：
+
+> 拉取下面的项目，安装其中的技能：https://github.com/comeonzhj/Auto-Redbook-Skills
 
 ---
 
