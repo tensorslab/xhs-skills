@@ -1,5 +1,9 @@
 ## 📕 Auto-Redbook-Skills（已重构版）
 
+### ⚠️ 使用此工具前情确保已悉知官方 3 月 10 日发布的公告
+
+公告地址：[关于打击AI托管运营账号的治理公告](http://xhslink.com/o/7WxTddvbmTu)
+
 **一句话安装此技能**，跟你的 Agent 说：
 
 > 拉取下面的项目，安装其中的技能：https://github.com/comeonzhj/Auto-Redbook-Skills
