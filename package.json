@@ -2,9 +2,9 @@
   "name": "md2redbook",
   "version": "2.0.0",
   "description": "小红书笔记素材创作工具 - 支持多种排版样式和智能分页",
-  "main": "scripts/render_xhs_v2.js",
+  "main": "skills/xhs-note-creator/scripts/render_xhs_v2.js",
   "scripts": {
-    "render": "node scripts/render_xhs_v2.js",
+    "render": "node skills/xhs-note-creator/scripts/render_xhs_v2.js",
     "install-browsers": "npx playwright install chromium"
   },
   "keywords": [

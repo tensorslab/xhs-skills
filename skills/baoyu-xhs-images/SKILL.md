@@ -1,6 +1,6 @@
 ---
 name: baoyu-xhs-images
-description: "[Deprecated: use baoyu-image-cards] Generates Xiaohongshu (Little Red Book) image card series with 12 visual styles, 8 layouts, and 3 color palettes. Breaks content into 1-10 cartoon-style image cards optimized for XHS engagement. Use when user mentions \"小红书图片\", \"XHS images\", \"RedNote infographics\", \"小红书种草\", \"小绿书\", \"微信图文\", \"微信贴图\", or wants social media infographic series for Chinese platforms."
+description: "AI 生成小红书图文卡片技能。适用于需要 AI 原创插画/卡通/手绘配图的图文并茂内容（种草分享、手绘笔记、知识图解、插画教程、视觉冲击封面等）。本技能通过 AI 图像生成工具创建 1-10 张风格化图片卡片，支持 12 种视觉风格（cute/fresh/warm/bold/minimal/retro/pop/notion/chalkboard/study-notes/screen-print/sketch-notes）、8 种信息布局和 3 种配色方案。触发关键词：\"小红书图片\"、\"生成图片\"、\"AI配图\"、\"插画卡片\"、\"手绘风格\"、\"图文并茂\"、\"XHS images\"、\"种草图\"、\"图解\"。注意：当用户只需要撰写文字笔记并排版发布（不需要 AI 生成原创配图）时，应使用 xhs-note-creator 技能。"
 version: 1.56.2
 metadata:
   openclaw:
