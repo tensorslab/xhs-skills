@@ -142,17 +142,20 @@ XHS_COOKIE=your_cookie_string_here
 **2. 发布**
 
 ```bash
+# 从方案文件读取文案（推荐）
 python skills/xhs-note-creator/scripts/publish_xhs.py \
-  --title "笔记标题" \
-  --desc "笔记描述内容" \
-  --images cover.png card_1.png card_2.png
+  --note note.md --images cover.png card_1.png card_2.png
+
+# 手动指定标题和描述
+python skills/xhs-note-creator/scripts/publish_xhs.py \
+  --title "笔记标题" --desc "笔记描述" --images cover.png card_1.png
 ```
 
 **可选参数：**
 
 | 参数 | 说明 |
 |------|------|
-| `--public` | 公开发布（默认仅自己可见） |
+| `--note` | 方案文件路径（Markdown/纯文本，从中读取 title 和 desc） |
 | `--post-time "2024-01-01 12:00:00"` | 定时发布 |
 | `--api-mode` | 通过 xhs-api 服务发布 |
 | `--dry-run` | 仅验证，不实际发布 |

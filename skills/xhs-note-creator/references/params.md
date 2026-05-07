@@ -71,34 +71,60 @@ python scripts/publish_xhs.py --title "标题" --desc "描述" --images img1.png
 
 | 参数 | 简写 | 说明 | 默认值 |
 |---|---|---|---|
-| `--title` | `-t` | 笔记标题（不超过 20 字） | 必填 |
-| `--desc` | `-d` | 笔记描述/正文内容 | `""` |
+| `--note` | `-n` | 方案文件路径（Markdown/纯文本，从中读取 title 和 desc） | 可选 |
+| `--title` | `-t` | 笔记标题（不超过 20 字，`--note` 优先） | 可选* |
+| `--desc` | `-d` | 笔记描述/正文内容（`--note` 优先） | `""` |
 | `--images` | `-i` | 图片文件路径（可多个） | 必填 |
-| `--public` | | 公开发布（默认仅自己可见） | `False` |
 | `--post-time` | | 定时发布（格式：`2024-01-01 12:00:00`） | 立即发布 |
 | `--api-mode` | | 通过 xhs-api 服务发布 | 本地模式 |
 | `--api-url` | | API 服务地址 | `http://localhost:5005` |
 | `--dry-run` | | 仅验证，不实际发布 | `False` |
 
-> **注意**：默认以「仅自己可见」发布，确认内容无误后再用 `--public` 公开。
+> *`--note` 和 `--title` 至少提供一个。两者同时传入时以 `--note` 文件内容为准。
+> 所有笔记一律以「仅自己可见」发布，用户在小红书中确认后再自行公开。
+
+### 方案文件格式
+
+支持两种格式：
+
+**1. 含 YAML frontmatter 的 Markdown（推荐）：**
+
+```markdown
+---
+title: "5个效率神器"
+---
+
+正文内容...
+```
+
+提取 `title` 字段作为标题，frontmatter 之后的正文作为描述。
+
+**2. 纯文本：**
+
+```
+5个效率神器
+正文内容...
+```
+
+第一行作为标题（不超过 20 字），其余行作为描述。
 
 ### 常用命令示例
 
 ```bash
-# 默认（仅自己可见，用于预览确认）
-python scripts/publish_xhs.py --title "标题" --desc "描述" --images cover.png card_1.png card_2.png
+# 从方案文件读取文案（推荐）
+python scripts/publish_xhs.py --note note.md --images cover.png card_1.png card_2.png
 
-# 公开发布
-python scripts/publish_xhs.py --title "标题" --desc "描述" --images cover.png card_1.png --public
+# 手动指定标题和描述
+python scripts/publish_xhs.py --title "标题" --desc "描述" --images cover.png card_1.png
 
 # 定时发布
-python scripts/publish_xhs.py --title "标题" --desc "描述" --images *.png --post-time "2024-12-01 10:00:00" --public
+python scripts/publish_xhs.py --note note.md --images *.png --post-time "2024-12-01 10:00:00"
 
 # API 模式
-python scripts/publish_xhs.py --title "标题" --desc "描述" --images *.png --api-mode
+python scripts/publish_xhs.py --note note.md --images *.png --api-mode
 
 # 仅验证不发布
-python scripts/publish_xhs.py --title "标题" --desc "描述" --images *.png --dry-run
+python scripts/publish_xhs.py --note note.md --images *.png --dry-run
 ```
 
 ### 环境变量配置（.env）
@@ -110,14 +136,21 @@ cp env.example.txt .env
 编辑 `.env`：
 
 ```env
-# 必需：小红书 Cookie
-XHS_COOKIE=your_cookie_string_here
+# 必需：小红书 Cookie（需包含 a1 和 web_session）
+XHS_COOKIE=abRequestId=...; web_session=...; a1=...; webId=...; ...
 
 # 可选：API 模式服务地址
 XHS_API_URL=http://localhost:5005
 ```
 
-**Cookie 获取方式**：浏览器登录小红书 → F12 → Network → 任意请求的 Cookie 头，复制完整字符串。
+**Cookie 获取方式**：通过内置浏览器引导登录获取。
+
+1. 打开内置浏览器访问小红书：`yobrowser_load_url(url="https://www.xiaohongshu.com")`
+2. 用户完成登录
+3. 通过 CDP 获取完整 Cookie：`yobrowser_cdp_send(method="Network.getAllCookies")`
+4. 将返回的 Cookie 拼接为 `key=value; key=value; ...` 格式写入 `.env`
+
+> **重要**：必须使用 `Network.getAllCookies` 而非 `document.cookie`，因为 `web_session` 是 httpOnly Cookie，无法通过 JavaScript 获取。
 
 ---
 

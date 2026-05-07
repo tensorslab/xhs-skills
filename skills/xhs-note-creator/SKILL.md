@@ -86,19 +86,51 @@ python scripts/render_xhs.py content.md -m auto-fit
 
 ### 第四步：发布小红书笔记（可选）
 
-**前置条件**：配置好 `.env` 文件中的 `XHS_COOKIE`（详见 `references/params.md`）
+#### 4.1 Cookie 配置（首次发布前）
 
-```bash
-# 默认仅自己可见（推荐先预览确认）
-python scripts/publish_xhs.py --title "笔记标题" --desc "笔记描述" \
-  --images cover.png card_1.png card_2.png
+检查 `.env` 中是否已配置有效的 `XHS_COOKIE`。若未配置或已过期，通过内置浏览器引导用户登录获取：
 
-# 确认无误后公开发布
-python scripts/publish_xhs.py --title "笔记标题" --desc "笔记描述" \
-  --images cover.png card_1.png card_2.png --public
+1. 使用内置浏览器打开小红书登录页：
+
+```
+yobrowser_load_url(url="https://www.xiaohongshu.com")
 ```
 
-> **默认以「仅自己可见」发布**，加 `--public` 参数才会公开。
+2. 提示用户在浏览器中完成登录操作，等待用户确认登录完成。
+
+3. 登录完成后，通过 CDP 获取完整 Cookie（包含 httpOnly 的 `web_session`）：
+
+```
+yobrowser_cdp_send(method="Network.getAllCookies")
+```
+
+4. 将获取到的 Cookie 拼接为字符串（`key1=value1; key2=value2; ...`），保存到 `.env` 文件：
+
+```
+XHS_COOKIE=abRequestId=...; web_session=...; a1=...; webId=...; ...
+```
+
+**关键点**：
+- 必须使用 `Network.getAllCookies`（CDP），不能用 `document.cookie`（无法获取 httpOnly 的 `web_session`）
+- 有效 Cookie 必须包含 `a1` 和 `web_session` 两个关键字段
+- `.env` 文件查找路径：当前工作目录 → skill 目录 → 项目根目录
+
+#### 4.2 发布笔记
+
+所有笔记一律以**仅自己可见**方式发布，用户在小红书中确认内容无误后再自行公开。
+
+```bash
+# 从方案文件读取文案（推荐，与第一步的输出对接）
+python scripts/publish_xhs.py --note note.md --images cover.png card_1.png card_2.png
+
+# 手动指定标题和描述
+python scripts/publish_xhs.py --title "笔记标题" --desc "笔记描述" \
+  --images cover.png card_1.png card_2.png
+```
+
+`--note` 和 `--title`/`--desc` 同时传入时，以 `--note` 文件内容为准。方案文件支持含 YAML frontmatter 的 Markdown（提取 `title` 字段 + 正文）或纯文本（第一行为标题，其余为描述）。
+
+发布成功后会返回笔记 ID 和链接，用户可在小红书 App 或网页中预览确认。
 
 ---
 

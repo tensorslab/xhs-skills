@@ -40,6 +40,52 @@ except ImportError as e:
     sys.exit(1)
 
 
+def load_note_from_file(filepath: str) -> Dict[str, str]:
+    """从方案文件读取 title 和 desc。
+
+    支持两种格式：
+    1. 含 YAML frontmatter 的 Markdown：提取 title 字段，正文作为 desc
+    2. 纯文本文件：第一行作为 title，其余作为 desc
+    """
+    path = Path(filepath)
+    if not path.exists():
+        print(f"❌ 错误: 方案文件不存在 - {filepath}")
+        sys.exit(1)
+
+    content = path.read_text(encoding='utf-8').strip()
+    if not content:
+        print(f"❌ 错误: 方案文件为空 - {filepath}")
+        sys.exit(1)
+
+    # 尝试解析 YAML frontmatter
+    fm_match = re.match(r'^---\s*\n(.*?)\n---\s*\n?(.*)', content, re.DOTALL)
+    if fm_match:
+        import yaml
+        try:
+            meta = yaml.safe_load(fm_match.group(1)) or {}
+        except yaml.YAMLError:
+            meta = {}
+
+        title = str(meta.get('title', '')).strip()
+        desc = fm_match.group(2).strip()
+
+        if not title:
+            # frontmatter 中没有 title，从正文第一行提取
+            first_line = desc.split('\n', 1)[0].strip().lstrip('#').strip()
+            title = first_line[:20]
+    else:
+        # 纯文本：第一行 title，其余 desc
+        lines = content.split('\n', 1)
+        title = lines[0].strip().lstrip('#').strip()[:20]
+        desc = lines[1].strip() if len(lines) > 1 else ''
+
+    if not title:
+        print(f"❌ 错误: 无法从方案文件中提取标题 - {filepath}")
+        sys.exit(1)
+
+    return {'title': title, 'desc': desc}
+
+
 def load_cookie() -> str:
     """从 .env 文件加载 Cookie"""
     # 尝试从多个位置加载 .env
@@ -138,9 +184,8 @@ class LocalPublisher:
         cookies = parse_cookie(self.cookie)
         a1 = cookies.get('a1', '')
         
-        def sign_func(uri, data=None, a1_param="", web_session=""):
-            # 使用 cookie 中的 a1 值
-            return local_sign(uri, data, a1=a1 or a1_param)
+        def sign_func(uri, data=None, a1="", web_session=""):
+            return local_sign(uri, data, a1=a1)
         
         self.client = XhsClient(cookie=self.cookie, sign=sign_func)
         
@@ -313,43 +358,43 @@ class ApiPublisher:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='将图片发布为小红书笔记',
+        description='将图片发布为小红书笔记（仅自己可见）',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 示例:
-  # 基本用法（默认仅自己可见）
-  python publish_xhs.py -t "我的标题" -d "正文内容" -i cover.png card_1.png card_2.png
-  
-  # 公开发布
-  python publish_xhs.py -t "我的标题" -d "正文内容" -i *.png --public
-  
-  # 使用 API 模式
-  python publish_xhs.py -t "我的标题" -d "正文内容" -i *.png --api-mode
-  
+  # 从方案文件读取文案并发布
+  python publish_xhs.py --note note.md -i cover.png card_1.png card_2.png
+
+  # 手动指定标题和描述
+  python publish_xhs.py -t "我的标题" -d "正文内容" -i cover.png card_1.png
+
+  # 方案文件优先（同时传了文件和 -t/-d 时，以文件为准）
+  python publish_xhs.py --note note.md -t "备选标题" -i cover.png card_1.png
+
   # 定时发布
-  python publish_xhs.py -t "我的标题" -d "正文内容" -i *.png --post-time "2024-12-01 10:00:00"
+  python publish_xhs.py --note note.md -i *.png --post-time "2024-12-01 10:00:00"
 '''
     )
     parser.add_argument(
+        '--note', '-n',
+        default=None,
+        help='方案文件路径（Markdown 或纯文本，从中读取 title 和 desc）'
+    )
+    parser.add_argument(
         '--title', '-t',
-        required=True,
-        help='笔记标题（不超过20字）'
+        default=None,
+        help='笔记标题（不超过20字，--note 优先）'
     )
     parser.add_argument(
         '--desc', '-d',
-        default='',
-        help='笔记描述/正文内容'
+        default=None,
+        help='笔记描述/正文内容（--note 优先）'
     )
     parser.add_argument(
         '--images', '-i',
         nargs='+',
         required=True,
         help='图片文件路径（可以多个）'
-    )
-    parser.add_argument(
-        '--public',
-        action='store_true',
-        help='公开发布（默认为仅自己可见）'
     )
     parser.add_argument(
         '--post-time',
@@ -371,50 +416,62 @@ def main():
         action='store_true',
         help='仅验证，不实际发布'
     )
-    
+
     args = parser.parse_args()
-    
+
+    # 确定文案来源：--note 优先，否则用 -t/-d
+    if args.note:
+        note = load_note_from_file(args.note)
+        title = note['title']
+        desc = note['desc']
+        print(f"📄 从方案文件读取文案: {args.note}")
+    elif args.title:
+        title = args.title
+        desc = args.desc or ''
+    else:
+        parser.error('必须提供 --note 方案文件或 --title 标题')
+
     # 验证标题长度
-    if len(args.title) > 20:
+    if len(title) > 20:
         print(f"⚠️ 警告: 标题超过20字，将被截断")
-        args.title = args.title[:20]
-    
+        title = title[:20]
+
     # 加载 Cookie
     cookie = load_cookie()
-    
+
     # 验证 Cookie 格式
     validate_cookie(cookie)
-    
+
     # 验证图片
     valid_images = validate_images(args.images)
-    
+
     if args.dry_run:
         print("\n🔍 验证模式 - 不会实际发布")
-        print(f"  📌 标题: {args.title}")
-        print(f"  📝 描述: {args.desc}")
+        print(f"  📌 标题: {title}")
+        print(f"  📝 描述: {desc[:80]}{'...' if len(desc) > 80 else ''}")
         print(f"  🖼️ 图片: {valid_images}")
-        print(f"  🔒 私密: {not args.public}")
+        print(f"  🔒 私密: True")
         print(f"  ⏰ 定时: {args.post_time or '立即发布'}")
         print(f"  📡 模式: {'API' if args.api_mode else '本地'}")
         print("\n✅ 验证通过，可以发布")
         return
-    
+
     # 选择发布方式
     if args.api_mode:
         publisher = ApiPublisher(cookie, args.api_url)
     else:
         publisher = LocalPublisher(cookie)
-    
+
     # 初始化客户端
     publisher.init_client()
-    
-    # 发布笔记
+
+    # 发布笔记（始终仅自己可见）
     try:
         publisher.publish(
-            title=args.title,
-            desc=args.desc,
+            title=title,
+            desc=desc,
             images=valid_images,
-            is_private=not args.public,
+            is_private=True,
             post_time=args.post_time
         )
     except Exception as e:
