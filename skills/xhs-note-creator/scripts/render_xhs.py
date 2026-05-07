@@ -8,7 +8,7 @@
 
 选项:
     --output-dir, -o     输出目录（默认为当前工作目录）
-    --theme, -t          排版主题：default, playful-geometric, neo-brutalism, 
+    --theme, -t          排版主题：default, playful-geometric, neo-brutalism,
                          botanical, professional, retro, terminal, sketch
     --mode, -m           分页模式：
                          - separator  : 按 --- 分隔符手动分页（默认）
@@ -674,12 +674,18 @@ def main():
 """,
     )
     parser.add_argument("markdown_file", help="Markdown 文件路径")
-    parser.add_argument("--output-dir", "-o", default=os.getcwd(), help="输出目录（默认为当前工作目录）")
+    parser.add_argument(
+        "--output-dir", "-o", default=os.getcwd(), help="输出目录（默认为当前工作目录）"
+    )
     parser.add_argument(
         "--theme", "-t", choices=AVAILABLE_THEMES, default="sketch", help="排版主题（默认: sketch）"
     )
     parser.add_argument(
-        "--mode", "-m", choices=PAGING_MODES, default="separator", help="分页模式（默认: separator）"
+        "--mode",
+        "-m",
+        choices=PAGING_MODES,
+        default="separator",
+        help="分页模式（默认: separator）",
     )
     parser.add_argument(
         "--width", "-w", type=int, default=DEFAULT_WIDTH, help=f"图片宽度（默认: {DEFAULT_WIDTH}）"
@@ -688,7 +694,10 @@ def main():
         "--height", type=int, default=DEFAULT_HEIGHT, help=f"图片高度（默认: {DEFAULT_HEIGHT}）"
     )
     parser.add_argument(
-        "--max-height", type=int, default=MAX_HEIGHT, help=f"dynamic 模式下的最大高度（默认: {MAX_HEIGHT}）"
+        "--max-height",
+        type=int,
+        default=MAX_HEIGHT,
+        help=f"dynamic 模式下的最大高度（默认: {MAX_HEIGHT}）",
     )
     parser.add_argument("--dpr", type=int, default=2, help="设备像素比（默认: 2）")
 

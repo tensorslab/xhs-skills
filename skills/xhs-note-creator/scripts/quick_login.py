@@ -18,32 +18,52 @@ async def main():
 
         await page.goto("https://www.xiaohongshu.com")
         print("\n🌐 请在浏览器中完成小红书登录...")
-        print("💡 登录成功后，脚本将自动获取 Cookie 并保存到 .env 文件")
+        print("💡 登录成功后，脚本将自动获取 Cookie 并保存到 .env 文件\n")
 
-        # 持续检查是否包含关键 cookie
+        # 记录页面加载后的初始 web_session 值
+        initial_cookies = await context.cookies()
+        initial_ws = {c["name"]: c["value"] for c in initial_cookies}.get("web_session", "")
+
+        # 阶段1：等待 web_session 变化（登录完成）
         cookie_string = ""
         while True:
+            if not browser.is_connected():
+                break
+
             cookies = await context.cookies()
             cookies_dict = {c["name"]: c["value"] for c in cookies}
+            current_ws = cookies_dict.get("web_session", "")
 
-            if "web_session" in cookies_dict and "a1" in cookies_dict:
-                cookie_string = "; ".join([f"{c['name']}={c['value']}" for c in cookies])
+            # web_session 出现新值（从未登录到登录，或值发生变化）
+            if current_ws and current_ws != initial_ws:
+                print("✅ 检测到登录成功，等待 Cookie 稳定...")
+                # 阶段2：等 JS 生成完整 cookie（gid 等）
+                await asyncio.sleep(5)
+
+                cookies = await context.cookies()
+                cookies_dict = {c["name"]: c["value"] for c in cookies}
+
+                if "web_session" not in cookies_dict or "a1" not in cookies_dict:
+                    print("⚠️ Cookie 异常，缺少 web_session 或 a1")
+                    break
+
+                if "gid" not in cookies_dict:
+                    print("⚠️ Cookie 中缺少 gid，部分接口可能无法调用")
+
+                cookie_string = "; ".join([f"{k}={v}" for k, v in cookies_dict.items()])
                 break
 
             await asyncio.sleep(2)
-            # 如果浏览器关闭了则退出
-            if browser.is_connected() is False:
-                break
 
         if cookie_string:
             env_path = Path(".env")
-            content = f"XHS_COOKIE={cookie_string}\n"
-
             if env_path.exists():
                 lines = env_path.read_text(encoding="utf-8").splitlines()
-                new_lines = [line for line in lines if not line.startswith("XHS_COOKIE=")]
-                new_lines.append(f"XHS_COOKIE={cookie_string}")
-                content = "\n".join(new_lines) + "\n"
+                lines = [l for l in lines if not l.startswith("XHS_COOKIE=")]
+                lines.append(f"XHS_COOKIE={cookie_string}")
+                content = "\n".join(lines) + "\n"
+            else:
+                content = f"XHS_COOKIE={cookie_string}\n"
 
             env_path.write_text(content, encoding="utf-8")
             print(f"\n✅ 成功获取 Cookie 并保存至 {env_path.absolute()}")

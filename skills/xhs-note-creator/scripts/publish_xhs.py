@@ -6,16 +6,16 @@
 使用方法:
     # 直接发布（使用本地签名）
     python publish_xhs.py --title "标题" --desc "描述" --images cover.png card_1.png
-    
+
     # 通过 API 服务发布
     python publish_xhs.py --title "标题" --desc "描述" --images cover.png card_1.png --api-mode
 
 环境变量:
     在同目录或项目根目录下创建 .env 文件，配置：
-    
+
     # 必需：小红书 Cookie
     XHS_COOKIE=your_cookie_string_here
-    
+
     # 可选：API 服务地址（使用 --api-mode 时需要）
     XHS_API_URL=http://localhost:5005
 
@@ -24,9 +24,9 @@
 """
 
 import argparse
-import asyncio
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -91,78 +91,74 @@ def _env_paths() -> List[Path]:
     """返回 .env 文件的候选路径列表"""
     return [
         Path.cwd() / ".env",
+        Path(__file__).parent / ".env",
         Path(__file__).parent.parent / ".env",
         Path(__file__).parent.parent.parent / ".env",
     ]
 
 
-def _save_cookie_to_env(cookie_string: str):
-    """将 Cookie 写入 .env 文件"""
-    env_path = Path.cwd() / ".env"
-    lines = []
-    if env_path.exists():
-        lines = env_path.read_text(encoding="utf-8").splitlines()
-    # 替换或追加 XHS_COOKIE 行
-    replaced = False
-    for i, line in enumerate(lines):
-        if line.startswith("XHS_COOKIE="):
-            lines[i] = f"XHS_COOKIE={cookie_string}"
-            replaced = True
+def _launch_quick_login() -> Optional[str]:
+    """启动 quick_login.py 脚本获取 Cookie，返回获取到的 Cookie 或 None"""
+    script_path = Path(__file__).parent / "quick_login.py"
+    if not script_path.exists():
+        print(f"❌ 未找到 Cookie 获取脚本: {script_path}")
+        return None
+
+    print("\n🌐 正在启动浏览器获取 Cookie...")
+    print("   请在打开的浏览器中完成小红书登录")
+    print("   登录成功后将自动保存 Cookie\n")
+
+    result = subprocess.run(
+        [sys.executable, str(script_path)],
+        cwd=str(script_path.parent),
+    )
+
+    if result.returncode != 0:
+        print("❌ Cookie 获取脚本执行失败")
+        return None
+
+    # 重新加载 .env 文件获取刚保存的 Cookie
+    for env_path in _env_paths():
+        if env_path.exists():
+            load_dotenv(env_path, override=True)
             break
-    if not replaced:
-        lines.append(f"XHS_COOKIE={cookie_string}")
-    env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"✅ Cookie 已保存到 {env_path}")
 
-
-def _login_via_playwright() -> str:
-    """使用 Playwright 打开浏览器让用户登录，返回 Cookie 字符串"""
-    try:
-        from playwright.async_api import async_playwright
-    except ImportError:
-        print("❌ 缺少 playwright 库，请运行: pip install playwright && playwright install chromium")
-        sys.exit(1)
-
-    async def _run():
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=False)
-            context = await browser.new_context()
-            page = await context.new_page()
-            await page.goto("https://www.xiaohongshu.com")
-            print("\n🌐 已打开小红书登录页面，请在浏览器中完成登录...")
-            print("   登录完成后按 Enter 继续...")
-            input()
-            cookies = await context.cookies()
-            cookie_string = "; ".join([f"{c['name']}={c['value']}" for c in cookies])
-            await browser.close()
-            return cookie_string
-
-    return asyncio.run(_run())
+    return os.getenv("XHS_COOKIE")
 
 
 def load_cookie() -> str:
-    """从 .env 文件加载 Cookie，若不存在则通过 Playwright 引导登录获取"""
+    """从 .env 文件加载 Cookie，若不存在或无效则启动 quick_login.py 获取"""
     for env_path in _env_paths():
         if env_path.exists():
             load_dotenv(env_path)
             break
 
     cookie = os.getenv("XHS_COOKIE")
-    if cookie:
-        return cookie
 
-    # Cookie 不存在，通过 Playwright 引导登录
-    print("⚠️ 未找到 XHS_COOKIE，将打开浏览器引导登录...")
-    cookie = _login_via_playwright()
+    # Cookie 存在时验证有效性
+    if cookie:
+        cookies_dict = parse_cookie(cookie)
+        if "web_session" in cookies_dict and "a1" in cookies_dict:
+            return cookie
+        print("⚠️ Cookie 缺少必要字段 (web_session/a1)，需要重新获取")
+
+    # Cookie 不存在或无效，启动 quick_login.py 获取
+    print("⚠️ 未找到有效的 XHS_COOKIE，将启动浏览器获取...")
+    cookie = _launch_quick_login()
+
+    if not cookie:
+        print("\n❌ 无法获取 Cookie，请手动运行以下脚本获取:")
+        print(f"   python {Path(__file__).parent / 'quick_login.py'}")
+        sys.exit(1)
 
     # 验证关键 Cookie 字段
     cookies_dict = parse_cookie(cookie)
     if "web_session" not in cookies_dict:
-        print("⚠️ Cookie 中缺少 web_session，登录可能未完成，请重试")
+        print("⚠️ Cookie 中缺少 web_session，登录可能未完成")
+        print("请手动运行以下脚本重试:")
+        print(f"   python {Path(__file__).parent / 'quick_login.py'}")
         sys.exit(1)
 
-    # 保存到 .env
-    _save_cookie_to_env(cookie)
     return cookie
 
 
@@ -422,14 +418,23 @@ def main():
 """,
     )
     parser.add_argument(
-        "--note", "-n", default=None, help="方案文件路径（Markdown 或纯文本，从中读取 title 和 desc）"
+        "--note",
+        "-n",
+        default=None,
+        help="方案文件路径（Markdown 或纯文本，从中读取 title 和 desc）",
     )
     parser.add_argument("--title", "-t", default=None, help="笔记标题（不超过20字，--note 优先）")
     parser.add_argument("--desc", "-d", default=None, help="笔记描述/正文内容（--note 优先）")
     parser.add_argument("--images", "-i", nargs="+", required=True, help="图片文件路径（可以多个）")
-    parser.add_argument("--post-time", default=None, help="定时发布时间（格式：2024-01-01 12:00:00）")
-    parser.add_argument("--api-mode", action="store_true", help="使用 API 模式发布（需要 xhs-api 服务运行）")
-    parser.add_argument("--api-url", default=None, help="API 服务地址（默认: http://localhost:5005）")
+    parser.add_argument(
+        "--post-time", default=None, help="定时发布时间（格式：2024-01-01 12:00:00）"
+    )
+    parser.add_argument(
+        "--api-mode", action="store_true", help="使用 API 模式发布（需要 xhs-api 服务运行）"
+    )
+    parser.add_argument(
+        "--api-url", default=None, help="API 服务地址（默认: http://localhost:5005）"
+    )
     parser.add_argument("--dry-run", action="store_true", help="仅验证，不实际发布")
 
     args = parser.parse_args()

@@ -341,7 +341,7 @@ def generate_cover_html(metadata: dict, style_key: str = "purple") -> str:
         }}
         .cover-container {{
             width: 1080px; height: 1440px;
-            background: {style['cover_bg']};
+            background: {style["cover_bg"]};
             position: relative; overflow: hidden;
         }}
         .cover-inner {{
@@ -418,7 +418,7 @@ def generate_card_html(
         }}
         .card-container {{
             width: 1080px; min-height: 1440px;
-            background: {style['card_bg']};
+            background: {style["card_bg"]};
             position: relative; padding: 50px; overflow: hidden;
         }}
         .card-inner {{
@@ -448,10 +448,10 @@ def generate_card_html(
         }}
         .card-content p {{ margin-bottom: 35px; }}
         .card-content strong {{ font-weight: 700; color: {heading_color}; }}
-        .card-content em {{ font-style: italic; color: {style['accent_color']}; }}
+        .card-content em {{ font-style: italic; color: {style["accent_color"]}; }}
         .card-content a {{
-            color: {style['accent_color']}; text-decoration: none;
-            border-bottom: 2px solid {style['accent_color']};
+            color: {style["accent_color"]}; text-decoration: none;
+            border-bottom: 2px solid {style["accent_color"]};
         }}
         .card-content ul, .card-content ol {{
             margin: 30px 0; padding-left: 60px;
@@ -469,15 +469,15 @@ def generate_card_html(
         }}
         .card-content blockquote p {{ margin: 0; }}
         .card-content code {{
-            background: {'#252540' if is_dark else '#f1f5f9'};
+            background: {"#252540" if is_dark else "#f1f5f9"};
             padding: 6px 16px; border-radius: 8px;
             font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
             font-size: 38px;
-            color: {style['accent_color']};
+            color: {style["accent_color"]};
         }}
         .card-content pre {{
             background: {pre_bg};
-            color: {'#e0e0e0' if is_dark else '#e2e8f0'};
+            color: {"#e0e0e0" if is_dark else "#e2e8f0"};
             padding: 40px; border-radius: 16px;
             margin: 35px 0;
             overflow-x: visible;
@@ -498,16 +498,16 @@ def generate_card_html(
         }}
         .card-content hr {{
             border: none; height: 2px;
-            background: {'#333355' if is_dark else '#e2e8f0'};
+            background: {"#333355" if is_dark else "#e2e8f0"};
             margin: 50px 0;
         }}
         .tags-container {{
             margin-top: 50px; padding-top: 30px;
-            border-top: 2px solid {'#333355' if is_dark else '#e2e8f0'};
+            border-top: 2px solid {"#333355" if is_dark else "#e2e8f0"};
         }}
         .tag {{
             display: inline-block;
-            background: {style['accent_color']};
+            background: {style["accent_color"]};
             color: white;
             padding: 12px 28px; border-radius: 30px;
             font-size: 34px;
@@ -718,9 +718,15 @@ def main():
         """,
     )
     parser.add_argument("markdown_file", nargs="?", help="Markdown 文件路径")
-    parser.add_argument("--output-dir", "-o", default=os.getcwd(), help="输出目录（默认为当前工作目录）")
     parser.add_argument(
-        "--style", "-s", default="purple", choices=list(STYLES.keys()), help="样式主题（默认: purple）"
+        "--output-dir", "-o", default=os.getcwd(), help="输出目录（默认为当前工作目录）"
+    )
+    parser.add_argument(
+        "--style",
+        "-s",
+        default="purple",
+        choices=list(STYLES.keys()),
+        help="样式主题（默认: purple）",
     )
     parser.add_argument("--list-styles", action="store_true", help="列出所有可用样式")
 

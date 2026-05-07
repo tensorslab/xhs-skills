@@ -108,13 +108,19 @@ yobrowser_cdp_send(method="Network.getAllCookies")
 
 4. 将获取到的 Cookie 拼接为字符串（`key1=value1; key2=value2; ...`），保存到 `.env` 文件。
 
-**yobrowser 不可用时**：直接运行发布脚本，脚本会自动启动 Playwright 浏览器引导登录获取 Cookie：
+**yobrowser 不可用时**：直接运行发布脚本，脚本会自动启动 `quick_login.py` 获取 Cookie：
 
 ```bash
 python scripts/publish_xhs.py --note note.md --images cover.png card_1.png
 ```
 
-脚本检测到 Cookie 缺失时，启动 Chromium 打开小红书登录页，用户登录后自动获取 Cookie 并保存到 `.env`。
+脚本检测到 Cookie 缺失或无效（缺少 `a1`/`web_session`）时，自动调用 `scripts/quick_login.py` 打开 Chromium 浏览器，用户登录后自动获取 Cookie 并保存到 `.env`，然后继续发布流程。
+
+**也可独立运行 Cookie 获取脚本**（如 Cookie 过期需单独刷新）：
+
+```bash
+python scripts/quick_login.py
+```
 
 **关键点**：
 - 必须使用 `Network.getAllCookies`（CDP）或 Playwright `context.cookies()`，不能用 `document.cookie`（无法获取 httpOnly 的 `web_session`）
@@ -146,6 +152,7 @@ python scripts/publish_xhs.py --title "笔记标题" --desc "笔记描述" \
 - `scripts/render_xhs.py` — 渲染脚本（主推，8 主题 + 4 分页模式）
 - `scripts/render_xhs_v2.py` — 渲染脚本 V2（备用，7 种渐变色彩风格）
 - `scripts/publish_xhs.py` — 发布脚本
+- `scripts/quick_login.py` — Cookie 获取脚本（浏览器登录，自动保存到 `.env`）
 
 ### 模板与样式
 - `assets/cover.html` — 封面 HTML 模板
