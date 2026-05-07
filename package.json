@@ -5,7 +5,13 @@
   "main": "skills/xhs-note-creator/scripts/render_xhs_v2.js",
   "scripts": {
     "render": "node skills/xhs-note-creator/scripts/render_xhs_v2.js",
-    "install-browsers": "npx playwright install chromium"
+    "install-browsers": "npx playwright install chromium",
+    "format": "prettier --write skills/xhs-note-creator/scripts/*.js",
+    "format:check": "prettier --check skills/xhs-note-creator/scripts/*.js",
+    "lint": "eslint skills/xhs-note-creator/scripts/*.js",
+    "lint:py": "ruff check skills/xhs-note-creator/scripts/",
+    "format:py": "black --line-length 100 skills/xhs-note-creator/scripts/",
+    "check": "npm run format:check && npm run lint && npm run lint:py"
   },
   "keywords": [
     "xiaohongshu",
@@ -19,5 +25,10 @@
     "js-yaml": "^4.1.0",
     "marked": "^11.0.0",
     "playwright": "^1.58.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.3.0",
+    "prettier": "^3.8.3"
   }
 }

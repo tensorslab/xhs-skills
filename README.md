@@ -102,7 +102,7 @@ python skills/xhs-note-creator/scripts/render_xhs.py demos/content.md -t retro -
 
 | 参数 | 简写 | 说明 |
 |------|------|------|
-| `--theme` | `-t` | 主题：`default`、`playful-geometric`、`neo-brutalism`、`botanical`、`professional`、`retro`、`terminal`、`sketch` |
+| `--theme` | `-t` | 可用主题：`default`、`playful-geometric`、`neo-brutalism`、`botanical`、`professional`、`retro`、`terminal`、`sketch`、`glassmorphism` |
 | `--mode` | `-m` | 分页模式：`separator` / `auto-fit` / `auto-split` / `dynamic` |
 | `--width` | `-w` | 图片宽度（默认 1080） |
 | `--height` |  | 图片高度（默认 1440，`dynamic` 为最小高度） |
@@ -137,7 +137,8 @@ cp env.example.txt .env
 XHS_COOKIE=your_cookie_string_here
 ```
 
-> 获取方式：浏览器登录小红书 → F12 → Network → 任意请求的 Cookie 头，复制整串。
+> 获取方式 1（推荐）：运行 `python skills/xhs-note-creator/scripts/quick_login.py` 自动获取。
+> 获取方式 2：浏览器登录小红书 → F12 → Network → 任意请求的 Cookie 头，复制整串。
 
 **2. 发布**
 

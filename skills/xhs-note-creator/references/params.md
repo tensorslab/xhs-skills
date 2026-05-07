@@ -143,14 +143,12 @@ XHS_COOKIE=abRequestId=...; web_session=...; a1=...; webId=...; ...
 XHS_API_URL=http://localhost:5005
 ```
 
-**Cookie 获取方式**：通过内置浏览器引导登录获取。
+**Cookie 获取方式**：优先通过内置浏览器 yobrowser（MCP 工具）获取，不可用时脚本自动回退到 Playwright。
 
-1. 打开内置浏览器访问小红书：`yobrowser_load_url(url="https://www.xiaohongshu.com")`
-2. 用户完成登录
-3. 通过 CDP 获取完整 Cookie：`yobrowser_cdp_send(method="Network.getAllCookies")`
-4. 将返回的 Cookie 拼接为 `key=value; key=value; ...` 格式写入 `.env`
+- **yobrowser 方式**（由 Agent 执行）：`yobrowser_load_url` → 用户登录 → `yobrowser_cdp_send(method="Network.getAllCookies")` → 保存到 `.env`
+- **Playwright fallback**（脚本自动触发）：启动 Chromium → 用户登录 → `context.cookies()` → 保存到 `.env`
 
-> **重要**：必须使用 `Network.getAllCookies` 而非 `document.cookie`，因为 `web_session` 是 httpOnly Cookie，无法通过 JavaScript 获取。
+> `.env` 文件查找路径：当前工作目录 → skill 目录 → 项目根目录
 
 ---
 

@@ -1,0 +1,92 @@
+/* ============================================
+   Glassmorphism - 现代毛玻璃效果风格
+   高透明度、模糊背景、柔和阴影
+   适配小红书卡片渲染
+   ============================================ */
+
+.card-inner {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  border-radius: 40px;
+}
+
+.card-content {
+  color: #1f2937;
+  font-size: 42px;
+  line-height: 1.7;
+}
+
+/* 标题样式 */
+.card-content h1 {
+  font-size: 76px;
+  font-weight: 900;
+  color: #111827;
+  margin-bottom: 45px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.card-content h2 {
+  font-size: 58px;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 55px 0 30px 0;
+  padding-left: 20px;
+  border-left: 10px solid #ff0844;
+}
+
+.card-content h3 {
+  font-size: 48px;
+  font-weight: 700;
+  color: #374151;
+  margin: 45px 0 25px 0;
+}
+
+/* 粗体 */
+.card-content strong {
+  color: #ff0844;
+  font-weight: 800;
+}
+
+/* 引用块 */
+.card-content blockquote {
+  background: rgba(255, 255, 255, 0.2);
+  border-left: 8px solid rgba(255, 8, 68, 0.5);
+  padding: 35px 45px;
+  margin: 40px 0;
+  border-radius: 0 20px 20px 0;
+  font-style: italic;
+}
+
+/* 代码 */
+.card-content code {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ff0844;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.card-content pre {
+  background: rgba(31, 41, 55, 0.85);
+  color: #f3f4f6;
+  padding: 45px;
+  border-radius: 25px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+/* Tags */
+.tags-container {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.tag {
+  background: linear-gradient(45deg, #ff0844, #ffb199);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(255, 8, 68, 0.3);
+}

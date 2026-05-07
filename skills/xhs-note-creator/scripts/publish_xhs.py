@@ -24,16 +24,16 @@
 """
 
 import argparse
+import asyncio
 import os
-import sys
-import json
 import re
+import sys
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 try:
-    from dotenv import load_dotenv
     import requests
+    from dotenv import load_dotenv
 except ImportError as e:
     print(f"缺少依赖: {e}")
     print("请运行: pip install python-dotenv requests")
@@ -52,76 +52,127 @@ def load_note_from_file(filepath: str) -> Dict[str, str]:
         print(f"❌ 错误: 方案文件不存在 - {filepath}")
         sys.exit(1)
 
-    content = path.read_text(encoding='utf-8').strip()
+    content = path.read_text(encoding="utf-8").strip()
     if not content:
         print(f"❌ 错误: 方案文件为空 - {filepath}")
         sys.exit(1)
 
     # 尝试解析 YAML frontmatter
-    fm_match = re.match(r'^---\s*\n(.*?)\n---\s*\n?(.*)', content, re.DOTALL)
+    fm_match = re.match(r"^---\s*\n(.*?)\n---\s*\n?(.*)", content, re.DOTALL)
     if fm_match:
         import yaml
+
         try:
             meta = yaml.safe_load(fm_match.group(1)) or {}
         except yaml.YAMLError:
             meta = {}
 
-        title = str(meta.get('title', '')).strip()
+        title = str(meta.get("title", "")).strip()
         desc = fm_match.group(2).strip()
 
         if not title:
             # frontmatter 中没有 title，从正文第一行提取
-            first_line = desc.split('\n', 1)[0].strip().lstrip('#').strip()
+            first_line = desc.split("\n", 1)[0].strip().lstrip("#").strip()
             title = first_line[:20]
     else:
         # 纯文本：第一行 title，其余 desc
-        lines = content.split('\n', 1)
-        title = lines[0].strip().lstrip('#').strip()[:20]
-        desc = lines[1].strip() if len(lines) > 1 else ''
+        lines = content.split("\n", 1)
+        title = lines[0].strip().lstrip("#").strip()[:20]
+        desc = lines[1].strip() if len(lines) > 1 else ""
 
     if not title:
         print(f"❌ 错误: 无法从方案文件中提取标题 - {filepath}")
         sys.exit(1)
 
-    return {'title': title, 'desc': desc}
+    return {"title": title, "desc": desc}
+
+
+def _env_paths() -> List[Path]:
+    """返回 .env 文件的候选路径列表"""
+    return [
+        Path.cwd() / ".env",
+        Path(__file__).parent.parent / ".env",
+        Path(__file__).parent.parent.parent / ".env",
+    ]
+
+
+def _save_cookie_to_env(cookie_string: str):
+    """将 Cookie 写入 .env 文件"""
+    env_path = Path.cwd() / ".env"
+    lines = []
+    if env_path.exists():
+        lines = env_path.read_text(encoding="utf-8").splitlines()
+    # 替换或追加 XHS_COOKIE 行
+    replaced = False
+    for i, line in enumerate(lines):
+        if line.startswith("XHS_COOKIE="):
+            lines[i] = f"XHS_COOKIE={cookie_string}"
+            replaced = True
+            break
+    if not replaced:
+        lines.append(f"XHS_COOKIE={cookie_string}")
+    env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"✅ Cookie 已保存到 {env_path}")
+
+
+def _login_via_playwright() -> str:
+    """使用 Playwright 打开浏览器让用户登录，返回 Cookie 字符串"""
+    try:
+        from playwright.async_api import async_playwright
+    except ImportError:
+        print("❌ 缺少 playwright 库，请运行: pip install playwright && playwright install chromium")
+        sys.exit(1)
+
+    async def _run():
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=False)
+            context = await browser.new_context()
+            page = await context.new_page()
+            await page.goto("https://www.xiaohongshu.com")
+            print("\n🌐 已打开小红书登录页面，请在浏览器中完成登录...")
+            print("   登录完成后按 Enter 继续...")
+            input()
+            cookies = await context.cookies()
+            cookie_string = "; ".join([f"{c['name']}={c['value']}" for c in cookies])
+            await browser.close()
+            return cookie_string
+
+    return asyncio.run(_run())
 
 
 def load_cookie() -> str:
-    """从 .env 文件加载 Cookie"""
-    # 尝试从多个位置加载 .env
-    env_paths = [
-        Path.cwd() / '.env',
-        Path(__file__).parent.parent / '.env',
-        Path(__file__).parent.parent.parent / '.env',
-    ]
-    
-    for env_path in env_paths:
+    """从 .env 文件加载 Cookie，若不存在则通过 Playwright 引导登录获取"""
+    for env_path in _env_paths():
         if env_path.exists():
             load_dotenv(env_path)
             break
-    
-    cookie = os.getenv('XHS_COOKIE')
-    if not cookie:
-        print("❌ 错误: 未找到 XHS_COOKIE 环境变量")
-        print("请创建 .env 文件，添加以下内容：")
-        print("XHS_COOKIE=your_cookie_string_here")
-        print("\nCookie 获取方式：")
-        print("1. 在浏览器中登录小红书（https://www.xiaohongshu.com）")
-        print("2. 打开开发者工具（F12）")
-        print("3. 在 Network 标签中查看任意请求的 Cookie 头")
-        print("4. 复制完整的 cookie 字符串")
+
+    cookie = os.getenv("XHS_COOKIE")
+    if cookie:
+        return cookie
+
+    # Cookie 不存在，通过 Playwright 引导登录
+    print("⚠️ 未找到 XHS_COOKIE，将打开浏览器引导登录...")
+    cookie = _login_via_playwright()
+
+    # 验证关键 Cookie 字段
+    cookies_dict = parse_cookie(cookie)
+    if "web_session" not in cookies_dict:
+        print("⚠️ Cookie 中缺少 web_session，登录可能未完成，请重试")
         sys.exit(1)
-    
+
+    # 保存到 .env
+    _save_cookie_to_env(cookie)
     return cookie
 
 
 def parse_cookie(cookie_string: str) -> Dict[str, str]:
     """解析 Cookie 字符串为字典"""
     cookies = {}
-    for item in cookie_string.split(';'):
+    for item in cookie_string.split(";"):
         item = item.strip()
-        if '=' in item:
-            key, value = item.split('=', 1)
+        if "=" in item:
+            key, value = item.split("=", 1)
             cookies[key.strip()] = value.strip()
     return cookies
 
@@ -129,22 +180,22 @@ def parse_cookie(cookie_string: str) -> Dict[str, str]:
 def validate_cookie(cookie_string: str) -> bool:
     """验证 Cookie 是否包含必要的字段"""
     cookies = parse_cookie(cookie_string)
-    
+
     # 检查必需的 cookie 字段
-    required_fields = ['a1', 'web_session']
+    required_fields = ["a1", "web_session"]
     missing = [f for f in required_fields if f not in cookies]
-    
+
     if missing:
         print(f"⚠️ Cookie 可能不完整，缺少字段: {', '.join(missing)}")
         print("这可能导致签名失败，请确保 Cookie 包含 a1 和 web_session 字段")
         return False
-    
+
     return True
 
 
 def get_api_url() -> str:
     """获取 API 服务地址"""
-    return os.getenv('XHS_API_URL', 'http://localhost:5005')
+    return os.getenv("XHS_API_URL", "http://localhost:5005")
 
 
 def validate_images(image_paths: List[str]) -> List[str]:
@@ -155,21 +206,21 @@ def validate_images(image_paths: List[str]) -> List[str]:
             valid_images.append(os.path.abspath(path))
         else:
             print(f"⚠️ 警告: 图片不存在 - {path}")
-    
+
     if not valid_images:
         print("❌ 错误: 没有有效的图片文件")
         sys.exit(1)
-    
+
     return valid_images
 
 
 class LocalPublisher:
     """本地发布模式：直接使用 xhs 库"""
-    
+
     def __init__(self, cookie: str):
         self.cookie = cookie
         self.client = None
-        
+
     def init_client(self):
         """初始化 xhs 客户端"""
         try:
@@ -179,16 +230,12 @@ class LocalPublisher:
             print("❌ 错误: 缺少 xhs 库")
             print("请运行: pip install xhs")
             sys.exit(1)
-        
-        # 解析 a1 值
-        cookies = parse_cookie(self.cookie)
-        a1 = cookies.get('a1', '')
-        
+
         def sign_func(uri, data=None, a1="", web_session=""):
             return local_sign(uri, data, a1=a1)
-        
+
         self.client = XhsClient(cookie=self.cookie, sign=sign_func)
-        
+
     def get_user_info(self) -> Optional[Dict[str, Any]]:
         """获取当前登录用户信息"""
         try:
@@ -198,64 +245,66 @@ class LocalPublisher:
         except Exception as e:
             print(f"⚠️ 无法获取用户信息: {e}")
             return None
-    
-    def publish(self, title: str, desc: str, images: List[str], 
-                is_private: bool = True, post_time: str = None) -> Dict[str, Any]:
+
+    def publish(
+        self,
+        title: str,
+        desc: str,
+        images: List[str],
+        is_private: bool = True,
+        post_time: str = None,
+    ) -> Dict[str, Any]:
         """发布图文笔记"""
-        print(f"\n🚀 准备发布笔记（本地模式）...")
+        print("\n🚀 准备发布笔记（本地模式）...")
         print(f"  📌 标题: {title}")
         print(f"  📝 描述: {desc[:50]}..." if len(desc) > 50 else f"  📝 描述: {desc}")
         print(f"  🖼️ 图片数量: {len(images)}")
-        
+
         try:
             result = self.client.create_image_note(
-                title=title,
-                desc=desc,
-                files=images,
-                is_private=is_private,
-                post_time=post_time
+                title=title, desc=desc, files=images, is_private=is_private, post_time=post_time
             )
-            
+
             print("\n✨ 笔记发布成功！")
             if isinstance(result, dict):
-                note_id = result.get('note_id') or result.get('id')
+                note_id = result.get("note_id") or result.get("id")
                 if note_id:
                     print(f"  📎 笔记ID: {note_id}")
                     print(f"  🔗 链接: https://www.xiaohongshu.com/explore/{note_id}")
-            
+
             return result
-            
+
         except Exception as e:
             error_msg = str(e)
             print(f"\n❌ 发布失败: {error_msg}")
-            
+
             # 提供具体的错误排查建议
-            if 'sign' in error_msg.lower() or 'signature' in error_msg.lower():
+            if "sign" in error_msg.lower() or "signature" in error_msg.lower():
                 print("\n💡 签名错误排查建议：")
                 print("1. 确保 Cookie 包含有效的 a1 和 web_session 字段")
                 print("2. Cookie 可能已过期，请重新获取")
                 print("3. 尝试使用 --api-mode 通过 API 服务发布")
-            elif 'cookie' in error_msg.lower():
+            elif "cookie" in error_msg.lower():
                 print("\n💡 Cookie 错误排查建议：")
                 print("1. 确保 Cookie 格式正确")
                 print("2. Cookie 可能已过期，请重新获取")
                 print("3. 确保 Cookie 来自已登录的小红书网页版")
-            
+
             raise
 
 
 class ApiPublisher:
     """API 发布模式：通过 xhs-api 服务发布"""
-    
+
     def __init__(self, cookie: str, api_url: str = None):
         self.cookie = cookie
         self.api_url = api_url or get_api_url()
-        self.session_id = 'md2redbook_session'
-        
+        self.session_id = "md2redbook_session"
+
     def init_client(self):
         """初始化 API 客户端"""
         print(f"📡 连接 API 服务: {self.api_url}")
-        
+
         # 健康检查
         try:
             resp = requests.get(f"{self.api_url}/health", timeout=5)
@@ -263,93 +312,90 @@ class ApiPublisher:
                 raise Exception("API 服务不可用")
         except requests.exceptions.RequestException as e:
             print(f"❌ 无法连接到 API 服务: {e}")
-            print(f"\n💡 请确保 xhs-api 服务已启动：")
-            print(f"   cd xhs-api && python app_full.py")
+            print("\n💡 请确保 xhs-api 服务已启动：")
+            print("   cd xhs-api && python app_full.py")
             sys.exit(1)
-        
+
         # 初始化 session
         try:
             resp = requests.post(
                 f"{self.api_url}/init",
-                json={
-                    "session_id": self.session_id,
-                    "cookie": self.cookie
-                },
-                timeout=30
+                json={"session_id": self.session_id, "cookie": self.cookie},
+                timeout=30,
             )
             result = resp.json()
-            
-            if resp.status_code == 200 and result.get('status') == 'success':
-                print(f"✅ API 初始化成功")
-                user_info = result.get('user_info', {})
+
+            if resp.status_code == 200 and result.get("status") == "success":
+                print("✅ API 初始化成功")
+                user_info = result.get("user_info", {})
                 if user_info:
                     print(f"👤 当前用户: {user_info.get('nickname', '未知')}")
-            elif result.get('status') == 'warning':
+            elif result.get("status") == "warning":
                 print(f"⚠️ {result.get('message')}")
             else:
-                raise Exception(result.get('error', '初始化失败'))
-                
+                raise Exception(result.get("error", "初始化失败"))
+
         except Exception as e:
             print(f"❌ API 初始化失败: {e}")
             sys.exit(1)
-    
+
     def get_user_info(self) -> Optional[Dict[str, Any]]:
         """获取当前登录用户信息"""
         try:
             resp = requests.post(
-                f"{self.api_url}/user/info",
-                json={"session_id": self.session_id},
-                timeout=10
+                f"{self.api_url}/user/info", json={"session_id": self.session_id}, timeout=10
             )
             if resp.status_code == 200:
                 result = resp.json()
-                if result.get('status') == 'success':
-                    info = result.get('user_info', {})
+                if result.get("status") == "success":
+                    info = result.get("user_info", {})
                     print(f"👤 当前用户: {info.get('nickname', '未知')}")
                     return info
             return None
         except Exception as e:
             print(f"⚠️ 无法获取用户信息: {e}")
             return None
-    
-    def publish(self, title: str, desc: str, images: List[str], 
-                is_private: bool = True, post_time: str = None) -> Dict[str, Any]:
+
+    def publish(
+        self,
+        title: str,
+        desc: str,
+        images: List[str],
+        is_private: bool = True,
+        post_time: str = None,
+    ) -> Dict[str, Any]:
         """发布图文笔记"""
-        print(f"\n🚀 准备发布笔记（API 模式）...")
+        print("\n🚀 准备发布笔记（API 模式）...")
         print(f"  📌 标题: {title}")
         print(f"  📝 描述: {desc[:50]}..." if len(desc) > 50 else f"  📝 描述: {desc}")
         print(f"  🖼️ 图片数量: {len(images)}")
-        
+
         try:
             payload = {
                 "session_id": self.session_id,
                 "title": title,
                 "desc": desc,
                 "files": images,
-                "is_private": is_private
+                "is_private": is_private,
             }
             if post_time:
                 payload["post_time"] = post_time
-            
-            resp = requests.post(
-                f"{self.api_url}/publish/image",
-                json=payload,
-                timeout=120
-            )
+
+            resp = requests.post(f"{self.api_url}/publish/image", json=payload, timeout=120)
             result = resp.json()
-            
-            if resp.status_code == 200 and result.get('status') == 'success':
+
+            if resp.status_code == 200 and result.get("status") == "success":
                 print("\n✨ 笔记发布成功！")
-                publish_result = result.get('result', {})
+                publish_result = result.get("result", {})
                 if isinstance(publish_result, dict):
-                    note_id = publish_result.get('note_id') or publish_result.get('id')
+                    note_id = publish_result.get("note_id") or publish_result.get("id")
                     if note_id:
                         print(f"  📎 笔记ID: {note_id}")
                         print(f"  🔗 链接: https://www.xiaohongshu.com/explore/{note_id}")
                 return publish_result
             else:
-                raise Exception(result.get('error', '发布失败'))
-                
+                raise Exception(result.get("error", "发布失败"))
+
         except Exception as e:
             error_msg = str(e)
             print(f"\n❌ 发布失败: {error_msg}")
@@ -358,9 +404,9 @@ class ApiPublisher:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='将图片发布为小红书笔记（仅自己可见）',
+        description="将图片发布为小红书笔记（仅自己可见）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog='''
+        epilog="""
 示例:
   # 从方案文件读取文案并发布
   python publish_xhs.py --note note.md -i cover.png card_1.png card_2.png
@@ -373,67 +419,36 @@ def main():
 
   # 定时发布
   python publish_xhs.py --note note.md -i *.png --post-time "2024-12-01 10:00:00"
-'''
+""",
     )
     parser.add_argument(
-        '--note', '-n',
-        default=None,
-        help='方案文件路径（Markdown 或纯文本，从中读取 title 和 desc）'
+        "--note", "-n", default=None, help="方案文件路径（Markdown 或纯文本，从中读取 title 和 desc）"
     )
-    parser.add_argument(
-        '--title', '-t',
-        default=None,
-        help='笔记标题（不超过20字，--note 优先）'
-    )
-    parser.add_argument(
-        '--desc', '-d',
-        default=None,
-        help='笔记描述/正文内容（--note 优先）'
-    )
-    parser.add_argument(
-        '--images', '-i',
-        nargs='+',
-        required=True,
-        help='图片文件路径（可以多个）'
-    )
-    parser.add_argument(
-        '--post-time',
-        default=None,
-        help='定时发布时间（格式：2024-01-01 12:00:00）'
-    )
-    parser.add_argument(
-        '--api-mode',
-        action='store_true',
-        help='使用 API 模式发布（需要 xhs-api 服务运行）'
-    )
-    parser.add_argument(
-        '--api-url',
-        default=None,
-        help='API 服务地址（默认: http://localhost:5005）'
-    )
-    parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='仅验证，不实际发布'
-    )
+    parser.add_argument("--title", "-t", default=None, help="笔记标题（不超过20字，--note 优先）")
+    parser.add_argument("--desc", "-d", default=None, help="笔记描述/正文内容（--note 优先）")
+    parser.add_argument("--images", "-i", nargs="+", required=True, help="图片文件路径（可以多个）")
+    parser.add_argument("--post-time", default=None, help="定时发布时间（格式：2024-01-01 12:00:00）")
+    parser.add_argument("--api-mode", action="store_true", help="使用 API 模式发布（需要 xhs-api 服务运行）")
+    parser.add_argument("--api-url", default=None, help="API 服务地址（默认: http://localhost:5005）")
+    parser.add_argument("--dry-run", action="store_true", help="仅验证，不实际发布")
 
     args = parser.parse_args()
 
     # 确定文案来源：--note 优先，否则用 -t/-d
     if args.note:
         note = load_note_from_file(args.note)
-        title = note['title']
-        desc = note['desc']
+        title = note["title"]
+        desc = note["desc"]
         print(f"📄 从方案文件读取文案: {args.note}")
     elif args.title:
         title = args.title
-        desc = args.desc or ''
+        desc = args.desc or ""
     else:
-        parser.error('必须提供 --note 方案文件或 --title 标题')
+        parser.error("必须提供 --note 方案文件或 --title 标题")
 
     # 验证标题长度
     if len(title) > 20:
-        print(f"⚠️ 警告: 标题超过20字，将被截断")
+        print("⚠️ 警告: 标题超过20字，将被截断")
         title = title[:20]
 
     # 加载 Cookie
@@ -450,7 +465,7 @@ def main():
         print(f"  📌 标题: {title}")
         print(f"  📝 描述: {desc[:80]}{'...' if len(desc) > 80 else ''}")
         print(f"  🖼️ 图片: {valid_images}")
-        print(f"  🔒 私密: True")
+        print("  🔒 私密: True")
         print(f"  ⏰ 定时: {args.post_time or '立即发布'}")
         print(f"  📡 模式: {'API' if args.api_mode else '本地'}")
         print("\n✅ 验证通过，可以发布")
@@ -468,15 +483,11 @@ def main():
     # 发布笔记（始终仅自己可见）
     try:
         publisher.publish(
-            title=title,
-            desc=desc,
-            images=valid_images,
-            is_private=True,
-            post_time=args.post_time
+            title=title, desc=desc, images=valid_images, is_private=True, post_time=args.post_time
         )
-    except Exception as e:
+    except Exception:
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

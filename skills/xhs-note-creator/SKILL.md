@@ -88,9 +88,11 @@ python scripts/render_xhs.py content.md -m auto-fit
 
 #### 4.1 Cookie 配置（首次发布前）
 
-检查 `.env` 中是否已配置有效的 `XHS_COOKIE`。若未配置或已过期，通过内置浏览器引导用户登录获取：
+检查 `.env` 中是否已配置有效的 `XHS_COOKIE`。若未配置或已过期，引导用户登录获取：
 
-1. 使用内置浏览器打开小红书登录页：
+**优先使用内置浏览器（yobrowser MCP 工具）**：
+
+1. 打开小红书登录页：
 
 ```
 yobrowser_load_url(url="https://www.xiaohongshu.com")
@@ -104,14 +106,18 @@ yobrowser_load_url(url="https://www.xiaohongshu.com")
 yobrowser_cdp_send(method="Network.getAllCookies")
 ```
 
-4. 将获取到的 Cookie 拼接为字符串（`key1=value1; key2=value2; ...`），保存到 `.env` 文件：
+4. 将获取到的 Cookie 拼接为字符串（`key1=value1; key2=value2; ...`），保存到 `.env` 文件。
 
+**yobrowser 不可用时**：直接运行发布脚本，脚本会自动启动 Playwright 浏览器引导登录获取 Cookie：
+
+```bash
+python scripts/publish_xhs.py --note note.md --images cover.png card_1.png
 ```
-XHS_COOKIE=abRequestId=...; web_session=...; a1=...; webId=...; ...
-```
+
+脚本检测到 Cookie 缺失时，启动 Chromium 打开小红书登录页，用户登录后自动获取 Cookie 并保存到 `.env`。
 
 **关键点**：
-- 必须使用 `Network.getAllCookies`（CDP），不能用 `document.cookie`（无法获取 httpOnly 的 `web_session`）
+- 必须使用 `Network.getAllCookies`（CDP）或 Playwright `context.cookies()`，不能用 `document.cookie`（无法获取 httpOnly 的 `web_session`）
 - 有效 Cookie 必须包含 `a1` 和 `web_session` 两个关键字段
 - `.env` 文件查找路径：当前工作目录 → skill 目录 → 项目根目录
 
