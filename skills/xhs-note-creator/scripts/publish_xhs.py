@@ -97,12 +97,20 @@ def _env_paths() -> List[Path]:
     ]
 
 
-def _launch_quick_login() -> Optional[str]:
-    """启动 quick_login.py 脚本获取 Cookie，返回获取到的 Cookie 或 None"""
+def _find_env_path() -> Optional[Path]:
+    """查找存在的 .env 文件路径"""
+    for env_path in _env_paths():
+        if env_path.exists():
+            return env_path
+    return None
+
+
+def _launch_quick_login() -> tuple[Optional[str], Optional[Path]]:
+    """启动 quick_login.py 脚本获取 Cookie，返回 (cookie, env_path) 或 (None, None)"""
     script_path = Path(__file__).parent / "quick_login.py"
     if not script_path.exists():
         print(f"❌ 未找到 Cookie 获取脚本: {script_path}")
-        return None
+        return None, None
 
     print("\n🌐 正在启动浏览器获取 Cookie...")
     print("   请在打开的浏览器中完成小红书登录")
@@ -115,23 +123,23 @@ def _launch_quick_login() -> Optional[str]:
 
     if result.returncode != 0:
         print("❌ Cookie 获取脚本执行失败")
-        return None
+        return None, None
 
     # 重新加载 .env 文件获取刚保存的 Cookie
-    for env_path in _env_paths():
-        if env_path.exists():
-            load_dotenv(env_path, override=True)
-            break
+    env_path = _find_env_path()
+    if env_path:
+        load_dotenv(env_path, override=True)
 
-    return os.getenv("XHS_COOKIE")
+    return os.getenv("XHS_COOKIE"), env_path
 
 
-def load_cookie() -> str:
-    """从 .env 文件加载 Cookie，若不存在或无效则启动 quick_login.py 获取"""
-    for env_path in _env_paths():
-        if env_path.exists():
-            load_dotenv(env_path)
-            break
+def load_cookie() -> tuple[str, Path]:
+    """从 .env 文件加载 Cookie，若不存在或无效则启动 quick_login.py 获取。
+    返回 (cookie, env_path)，env_path 为 .env 文件的绝对路径。
+    """
+    env_path = _find_env_path()
+    if env_path:
+        load_dotenv(env_path)
 
     cookie = os.getenv("XHS_COOKIE")
 
@@ -139,12 +147,12 @@ def load_cookie() -> str:
     if cookie:
         cookies_dict = parse_cookie(cookie)
         if "web_session" in cookies_dict and "a1" in cookies_dict:
-            return cookie
+            return cookie, env_path
         print("⚠️ Cookie 缺少必要字段 (web_session/a1)，需要重新获取")
 
     # Cookie 不存在或无效，启动 quick_login.py 获取
     print("⚠️ 未找到有效的 XHS_COOKIE，将启动浏览器获取...")
-    cookie = _launch_quick_login()
+    cookie, env_path = _launch_quick_login()
 
     if not cookie:
         print("\n❌ 无法获取 Cookie，请手动运行以下脚本获取:")
@@ -159,7 +167,7 @@ def load_cookie() -> str:
         print(f"   python {Path(__file__).parent / 'quick_login.py'}")
         sys.exit(1)
 
-    return cookie
+    return cookie, env_path
 
 
 def parse_cookie(cookie_string: str) -> Dict[str, str]:
@@ -457,7 +465,9 @@ def main():
         title = title[:20]
 
     # 加载 Cookie
-    cookie = load_cookie()
+    cookie, env_path = load_cookie()
+    if env_path:
+        print(f"📂 Cookie 文件: {env_path}")
 
     # 验证 Cookie 格式
     validate_cookie(cookie)
@@ -491,6 +501,10 @@ def main():
             title=title, desc=desc, images=valid_images, is_private=True, post_time=args.post_time
         )
     except Exception:
+        if env_path:
+            print(f"\n💡 若 Cookie 已过期，请删除后重新授权：")
+            print(f"   del \"{env_path}\"")
+            print(f"   python {Path(__file__).parent / 'quick_login.py'}")
         sys.exit(1)
 
 

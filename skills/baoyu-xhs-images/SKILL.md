@@ -38,6 +38,8 @@ Setting `preferred_image_backend: ask` forces the step-3 prompt every run regard
 
 **Prompt file requirement (hard)**: write each image's full, final prompt to a standalone file under `prompts/` (naming: `NN-{type}-[slug].md`) BEFORE invoking any backend. The file is the reproducibility record and lets you switch backends without regenerating prompts.
 
+**Seedream backend requirement**: if Seedream is selected as the image generation backend, version 4.5 or above is required (lower versions produce insufficient quality for card-style outputs).
+
 Concrete tool names (`imagegen`, `image_generate`, `baoyu-imagine`) above are examples — substitute the local equivalents under the same rule.
 
 ## Confirmation Policy

@@ -137,8 +137,7 @@ cp env.example.txt .env
 XHS_COOKIE=your_cookie_string_here
 ```
 
-> 获取方式 1（推荐）：运行 `python skills/xhs-note-creator/scripts/quick_login.py` 自动获取。
-> 获取方式 2：浏览器登录小红书 → F12 → Network → 任意请求的 Cookie 头，复制整串。
+> 获取方式：运行 `python skills/xhs-note-creator/scripts/quick_login.py` 自动获取。
 
 **2. 发布**
 
