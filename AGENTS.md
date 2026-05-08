@@ -1,16 +1,21 @@
 # Agent Guidelines
 
+## Architecture Requirements
+
+* **一个文件做一件事**：遵循单一职责原则，确保代码清晰。
+* **模块化**：通过模块化设计提高代码的可重用性和可维护性。
+
 ## Code Formatting
 
-All code changes must be formatted before committing.
+在修改代码或实现功能之后，必须进行代码格式化。
 
 ### TypeScript / JavaScript
 
 Prettier: single quotes, no semicolons, print width 100.
 
 ```bash
-pnpm run format          # format all JS files
-pnpm run format:check    # check without writing
+pnpm run format
+pnpm run format:check
 ```
 
 ### Python
@@ -18,8 +23,8 @@ pnpm run format:check    # check without writing
 Black (line-length 100) + Ruff lint.
 
 ```bash
-pnpm run format:py       # format with black
-pnpm run lint:py         # lint with ruff
+pnpm run format:py
+pnpm run lint:py
 ```
 
 Or directly:
@@ -32,5 +37,5 @@ ruff check skills/xhs-note-creator/scripts/
 ### Lint All
 
 ```bash
-pnpm run check           # runs format:check + lint + lint:py
+pnpm run check
 ```

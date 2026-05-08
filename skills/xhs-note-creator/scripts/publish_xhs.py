@@ -39,6 +39,8 @@ except ImportError as e:
     print("请运行: pip install python-dotenv requests")
     sys.exit(1)
 
+from cookie_utils import is_cookie_expired, parse_cookie, remove_cookie_from_all_envs
+
 
 def load_note_from_file(filepath: str) -> Dict[str, str]:
     """从方案文件读取 title 和 desc。
@@ -83,6 +85,9 @@ def load_note_from_file(filepath: str) -> Dict[str, str]:
     if not title:
         print(f"❌ 错误: 无法从方案文件中提取标题 - {filepath}")
         sys.exit(1)
+
+    # 小红书会压缩空行，用零宽空格填充空行使其保留换行效果
+    desc = re.sub(r"\n{2,}", "\n​\n", desc)
 
     return {"title": title, "desc": desc}
 
@@ -134,7 +139,7 @@ def _launch_quick_login() -> tuple[Optional[str], Optional[Path]]:
 
 
 def load_cookie() -> tuple[str, Path]:
-    """从 .env 文件加载 Cookie，若不存在或无效则启动 quick_login.py 获取。
+    """从 .env 文件加载 Cookie，若不存在、无效或过期则自动删除并重新获取。
     返回 (cookie, env_path)，env_path 为 .env 文件的绝对路径。
     """
     env_path = _find_env_path()
@@ -143,16 +148,23 @@ def load_cookie() -> tuple[str, Path]:
 
     cookie = os.getenv("XHS_COOKIE")
 
-    # Cookie 存在时验证有效性
+    need_refresh = False
+
     if cookie:
         cookies_dict = parse_cookie(cookie)
-        if "web_session" in cookies_dict and "a1" in cookies_dict:
-            return cookie, env_path
-        print("⚠️ Cookie 缺少必要字段 (web_session/a1)，需要重新获取")
+        if "web_session" not in cookies_dict or "a1" not in cookies_dict:
+            print("⚠️ Cookie 缺少必要字段 (web_session/a1)，需要重新获取")
+            need_refresh = True
+        elif is_cookie_expired(cookie):
+            need_refresh = True
 
-    # Cookie 不存在或无效，启动 quick_login.py 获取
-    print("⚠️ 未找到有效的 XHS_COOKIE，将启动浏览器获取...")
-    cookie, env_path = _launch_quick_login()
+        if need_refresh:
+            remove_cookie_from_all_envs(_env_paths())
+            cookie = None
+
+    if not cookie:
+        print("⚠️ 未找到有效的 XHS_COOKIE，将启动浏览器获取...")
+        cookie, env_path = _launch_quick_login()
 
     if not cookie:
         print("\n❌ 无法获取 Cookie，请手动运行以下脚本获取:")
@@ -168,17 +180,6 @@ def load_cookie() -> tuple[str, Path]:
         sys.exit(1)
 
     return cookie, env_path
-
-
-def parse_cookie(cookie_string: str) -> Dict[str, str]:
-    """解析 Cookie 字符串为字典"""
-    cookies = {}
-    for item in cookie_string.split(";"):
-        item = item.strip()
-        if "=" in item:
-            key, value = item.split("=", 1)
-            cookies[key.strip()] = value.strip()
-    return cookies
 
 
 def validate_cookie(cookie_string: str) -> bool:
@@ -502,8 +503,8 @@ def main():
         )
     except Exception:
         if env_path:
-            print(f"\n💡 若 Cookie 已过期，请删除后重新授权：")
-            print(f"   del \"{env_path}\"")
+            print("\n💡 若 Cookie 已过期，请删除后重新授权：")
+            print(f'   del "{env_path}"')
             print(f"   python {Path(__file__).parent / 'quick_login.py'}")
         sys.exit(1)
 
