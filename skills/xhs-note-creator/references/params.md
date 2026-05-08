@@ -36,7 +36,6 @@ python scripts/render_xhs.py <markdown_file> [options]
 | 值 | 说明 | 适用场景 |
 |---|---|---|
 | `separator` | 按 `---` 分隔符分页 | 内容已手动控量，需要精确分页 |
-| `auto-fit` | 固定尺寸，自动整体缩放内容 | 封面 + 单张图，尺寸固定不溢出 |
 | `auto-split` | 根据渲染后高度自动切分 | 内容长短不稳定，推荐通用选择 |
 | `dynamic` | 根据内容动态调整图片高度 | 允许不同高度卡片，字数 ≤550 |
 
@@ -48,9 +47,6 @@ python scripts/render_xhs.py content.md
 
 # 自动分页（推荐内容不稳定时使用）
 python scripts/render_xhs.py content.md -m auto-split
-
-# 固定尺寸自动缩放
-python scripts/render_xhs.py content.md -m auto-fit
 
 # 切换主题
 python scripts/render_xhs.py content.md -t playful-geometric -m auto-split
@@ -71,8 +67,8 @@ python scripts/publish_xhs.py --title "标题" --desc "描述" --images img1.png
 
 | 参数 | 简写 | 说明 | 默认值 |
 |---|---|---|---|
-| `--note` | `-n` | 方案文件路径（Markdown/纯文本，从中读取 title 和 desc） | 可选 |
-| `--title` | `-t` | 笔记标题（不超过 18 字，`--note` 优先） | 可选* |
+| `--note` | `-n` | 方案文件路径（纯文本，内容作为描述正文） | 可选 |
+| `--title` | `-t` | 笔记标题（必填，不超过20字，超出报错） | 必填 |
 | `--desc` | `-d` | 笔记描述/正文内容（`--note` 优先） | `""` |
 | `--images` | `-i` | 图片文件路径（可多个） | 必填 |
 | `--post-time` | | 定时发布（格式：`2024-01-01 12:00:00`） | 立即发布 |
@@ -80,51 +76,34 @@ python scripts/publish_xhs.py --title "标题" --desc "描述" --images img1.png
 | `--api-url` | | API 服务地址 | `http://localhost:5005` |
 | `--dry-run` | | 仅验证，不实际发布 | `False` |
 
-> *`--note` 和 `--title` 至少提供一个。两者同时传入时以 `--note` 文件内容为准。
+> *`--title` 为必填参数（不超过20字，超出报错拒绝发布）。`--note` 和 `--desc` 同时传入时以 `--note` 文件内容为准。
 > 所有笔记一律以「仅自己可见」发布，用户在小红书中确认后再自行公开。
 
 ### 方案文件格式
 
-支持两种格式：
+纯文本格式，内容作为描述正文（标题通过 `--title` 单独传入）：
 
-**1. 含 YAML frontmatter 的 Markdown（推荐）：**
-
-```markdown
----
-title: "5个效率神器"
----
-
+```
 正文内容...
 ```
-
-提取 `title` 字段作为标题，frontmatter 之后的正文作为描述。
-
-**2. 纯文本：**
-
-```
-5个效率神器
-正文内容...
-```
-
-第一行作为标题（不超过 18 字），其余行作为描述。
 
 ### 常用命令示例
 
 ```bash
-# 从方案文件读取文案（推荐）
-python scripts/publish_xhs.py --note note.md --images cover.png card_1.png card_2.png
+# 从方案文件读取描述 + 指定标题（推荐）
+python scripts/publish_xhs.py --title "标题" --note note.md --images cover.png card_1.png card_2.png
 
 # 手动指定标题和描述
 python scripts/publish_xhs.py --title "标题" --desc "描述" --images cover.png card_1.png
 
 # 定时发布
-python scripts/publish_xhs.py --note note.md --images *.png --post-time "2024-12-01 10:00:00"
+python scripts/publish_xhs.py --title "标题" --note note.md --images *.png --post-time "2024-12-01 10:00:00"
 
 # API 模式
-python scripts/publish_xhs.py --note note.md --images *.png --api-mode
+python scripts/publish_xhs.py --title "标题" --note note.md --images *.png --api-mode
 
 # 仅验证不发布
-python scripts/publish_xhs.py --note note.md --images *.png --dry-run
+python scripts/publish_xhs.py --title "标题" --note note.md --images *.png --dry-run
 ```
 
 ### 环境变量配置（.env）
@@ -154,19 +133,21 @@ XHS_API_URL=http://localhost:5005
 
 ## Markdown 文档格式
 
-### YAML 头部元数据
+渲染用的 Markdown 文档分为两部分：**封面**（由 YAML 头部控制）和**正文卡片**（由 Markdown 正文控制）。
 
-```yaml
----
-emoji: "🚀"           # 封面装饰 Emoji
-title: "大标题"        # 封面大标题（不超过 15 字）
-subtitle: "副标题文案"  # 封面副标题（不超过 15 字）
----
-```
+### 封面（YAML 头部）
 
-### 分页分隔符
+YAML 头部仅用于生成封面图片，支持以下字段：
 
-使用 `---` 手动分割卡片（配合 `-m separator` 使用）：
+| 字段 | 说明 | 限制 |
+|---|---|---|
+| `emoji` | 封面装饰 Emoji | — |
+| `title` | 封面大标题 | 不超过 15 字 |
+| `subtitle` | 封面副标题 | 不超过 15 字 |
+
+### 正文卡片
+
+正文按 `---` 分隔符拆分为多张卡片（配合 `-m separator` 使用）。每张卡片的标题来自 Markdown 标题语法（`#`、`##` 等），其余内容正常渲染。
 
 ```markdown
 ---
@@ -185,3 +166,5 @@ subtitle: "提升效率的 5 个神器"
 
 快捷启动工具...
 ```
+
+上方示例生成：一张封面（emoji + title + subtitle）+ 两张正文卡片（各自的 `#` 标题作为卡片标题）。

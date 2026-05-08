@@ -7,6 +7,9 @@
     # 直接发布（使用本地签名）
     python publish_xhs.py --title "标题" --desc "描述" --images cover.png card_1.png
 
+    # 通过方案文件发布
+    python publish_xhs.py --title "标题" --note note.md --images cover.png card_1.png
+
     # 通过 API 服务发布
     python publish_xhs.py --title "标题" --desc "描述" --images cover.png card_1.png --api-mode
 
@@ -42,13 +45,8 @@ except ImportError as e:
 from cookie_utils import is_cookie_expired, parse_cookie, remove_cookie_from_all_envs
 
 
-def load_note_from_file(filepath: str) -> Dict[str, str]:
-    """从方案文件读取 title 和 desc。
-
-    支持两种格式：
-    1. 含 YAML frontmatter 的 Markdown：提取 title 字段，正文作为 desc
-    2. 纯文本文件：第一行作为 title，其余作为 desc
-    """
+def load_note_from_file(filepath: str) -> str:
+    """从纯文本方案文件读取描述内容。"""
     path = Path(filepath)
     if not path.exists():
         print(f"❌ 错误: 方案文件不存在 - {filepath}")
@@ -59,37 +57,10 @@ def load_note_from_file(filepath: str) -> Dict[str, str]:
         print(f"❌ 错误: 方案文件为空 - {filepath}")
         sys.exit(1)
 
-    # 尝试解析 YAML frontmatter
-    fm_match = re.match(r"^---\s*\n(.*?)\n---\s*\n?(.*)", content, re.DOTALL)
-    if fm_match:
-        import yaml
-
-        try:
-            meta = yaml.safe_load(fm_match.group(1)) or {}
-        except yaml.YAMLError:
-            meta = {}
-
-        title = str(meta.get("title", "")).strip()
-        desc = fm_match.group(2).strip()
-
-        if not title:
-            # frontmatter 中没有 title，从正文第一行提取
-            first_line = desc.split("\n", 1)[0].strip().lstrip("#").strip()
-            title = first_line[:20]
-    else:
-        # 纯文本：第一行 title，其余 desc
-        lines = content.split("\n", 1)
-        title = lines[0].strip().lstrip("#").strip()[:20]
-        desc = lines[1].strip() if len(lines) > 1 else ""
-
-    if not title:
-        print(f"❌ 错误: 无法从方案文件中提取标题 - {filepath}")
-        sys.exit(1)
-
     # 小红书会压缩空行，用零宽空格填充空行使其保留换行效果
-    desc = re.sub(r"\n{2,}", "\n​\n", desc)
+    content = re.sub(r"\n{2,}", "\n​\n", content)
 
-    return {"title": title, "desc": desc}
+    return content
 
 
 def _env_paths() -> List[Path]:
@@ -413,26 +384,23 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
-  # 从方案文件读取文案并发布
-  python publish_xhs.py --note note.md -i cover.png card_1.png card_2.png
+  # 从方案文件读取描述并发布
+  python publish_xhs.py --title "标题" --note note.md -i cover.png card_1.png card_2.png
 
   # 手动指定标题和描述
   python publish_xhs.py -t "我的标题" -d "正文内容" -i cover.png card_1.png
 
-  # 方案文件优先（同时传了文件和 -t/-d 时，以文件为准）
-  python publish_xhs.py --note note.md -t "备选标题" -i cover.png card_1.png
-
   # 定时发布
-  python publish_xhs.py --note note.md -i *.png --post-time "2024-12-01 10:00:00"
+  python publish_xhs.py -t "标题" --note note.md -i *.png --post-time "2024-12-01 10:00:00"
 """,
     )
     parser.add_argument(
         "--note",
         "-n",
         default=None,
-        help="方案文件路径（Markdown 或纯文本，从中读取 title 和 desc）",
+        help="方案文件路径（纯文本，内容作为描述正文）",
     )
-    parser.add_argument("--title", "-t", default=None, help="笔记标题（不超过20字，--note 优先）")
+    parser.add_argument("--title", "-t", default=None, help="笔记标题（必填，不超过20字）")
     parser.add_argument("--desc", "-d", default=None, help="笔记描述/正文内容（--note 优先）")
     parser.add_argument("--images", "-i", nargs="+", required=True, help="图片文件路径（可以多个）")
     parser.add_argument(
@@ -448,22 +416,25 @@ def main():
 
     args = parser.parse_args()
 
-    # 确定文案来源：--note 优先，否则用 -t/-d
-    if args.note:
-        note = load_note_from_file(args.note)
-        title = note["title"]
-        desc = note["desc"]
-        print(f"📄 从方案文件读取文案: {args.note}")
-    elif args.title:
-        title = args.title
-        desc = args.desc or ""
-    else:
-        parser.error("必须提供 --note 方案文件或 --title 标题")
+    # 验证标题
+    if not args.title:
+        parser.error("必须提供 --title 标题")
+
+    title = args.title
 
     # 验证标题长度
     if len(title) > 20:
-        print("⚠️ 警告: 标题超过20字，将被截断")
-        title = title[:20]
+        print(f"❌ 错误: 标题长度 {len(title)} 字，超过20字限制，无法发布")
+        sys.exit(1)
+
+    # 确定描述来源：--note 优先，否则用 -d
+    if args.note:
+        desc = load_note_from_file(args.note)
+        print(f"📄 从方案文件读取描述: {args.note}")
+    elif args.desc:
+        desc = args.desc
+    else:
+        desc = ""
 
     # 加载 Cookie
     cookie, env_path = load_cookie()

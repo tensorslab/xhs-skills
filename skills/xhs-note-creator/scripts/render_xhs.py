@@ -12,7 +12,6 @@
                          botanical, professional, retro, terminal, sketch
     --mode, -m           分页模式：
                          - separator  : 按 --- 分隔符手动分页（默认）
-                         - auto-fit   : 自动缩放文字以填满固定尺寸
                          - auto-split : 根据内容高度自动切分
                          - dynamic    : 根据内容动态调整图片高度
     --width, -w          图片宽度（默认 1080）
@@ -84,7 +83,7 @@ AVAILABLE_THEMES = [
 ]
 
 # 分页模式
-PAGING_MODES = ["separator", "auto-fit", "auto-split", "dynamic"]
+PAGING_MODES = ["separator", "auto-split", "dynamic"]
 
 
 def parse_markdown_file(file_path: str) -> dict:
@@ -117,25 +116,14 @@ def split_content_by_separator(body: str) -> List[str]:
 
 def convert_markdown_to_html(md_content: str) -> str:
     """将 Markdown 转换为 HTML"""
-    # 处理 tags（以 # 开头的标签）
-    tags_pattern = r"((?:#[\w\u4e00-\u9fa5]+\s*)+)$"
-    tags_match = re.search(tags_pattern, md_content, re.MULTILINE)
-    tags_html = ""
-
-    if tags_match:
-        tags_str = tags_match.group(1)
-        md_content = md_content[: tags_match.start()].strip()
-        tags = re.findall(r"#([\w\u4e00-\u9fa5]+)", tags_str)
-        if tags:
-            tags_html = '<div class="tags-container">'
-            for tag in tags:
-                tags_html += f'<span class="tag">#{tag}</span>'
-            tags_html += "</div>"
+    # 去除末尾的 #标签（发布时的 SEO 标签，不需要渲染到图片卡片中）
+    tags_pattern = r"((?:#[\w一-龥]+\s*)+)$"
+    md_content = re.sub(tags_pattern, "", md_content).strip()
 
     # 转换 Markdown 为 HTML
     html = markdown.markdown(md_content, extensions=["extra", "codehilite", "tables", "nl2br"])
 
-    return html + tags_html
+    return html
 
 
 def load_theme_css(theme: str) -> str:
@@ -316,7 +304,23 @@ def generate_card_html(
     bg = theme_backgrounds.get(theme, theme_backgrounds["default"])
 
     # 根据模式设置不同的容器样式
-    if mode == "auto-fit":
+    if mode == "dynamic":
+        container_style = f"""
+            width: {width}px;
+            min-height: {height}px;
+            background: {bg};
+            position: relative;
+            padding: 50px;
+        """
+        inner_style = """
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 60px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        """
+        content_style = ""
+    else:  # separator 和 auto-split
         container_style = f"""
             width: {width}px;
             height: {height}px;
@@ -340,40 +344,6 @@ def generate_card_html(
             flex: 1;
             overflow: hidden;
         """
-    elif mode == "dynamic":
-        container_style = f"""
-            width: {width}px;
-            min-height: {height}px;
-            background: {bg};
-            position: relative;
-            padding: 50px;
-        """
-        inner_style = """
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 60px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        """
-        content_style = ""
-    else:  # separator 和 auto-split
-        container_style = f"""
-            width: {width}px;
-            min-height: {height}px;
-            background: {bg};
-            position: relative;
-            padding: 50px;
-            overflow: hidden;
-        """
-        inner_style = f"""
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 60px;
-            min-height: calc({height}px - 100px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        """
-        content_style = ""
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -410,7 +380,7 @@ def generate_card_html(
             {content_style}
         }}
 
-        /* auto-fit 用：对整个内容块做 transform 缩放 */
+        /* 内容溢出时 transform 缩放 */
         .card-content-scale {{
             transform-origin: top left;
             will-change: transform;
@@ -471,46 +441,7 @@ async def render_html_to_image(
         # 等待字体加载
         await page.wait_for_timeout(500)
 
-        if mode == "auto-fit":
-            # 自动缩放模式：对整个内容块做 transform 缩放（标题/代码块等固定 px 也会一起缩放）
-            await page.evaluate(
-                """() => {
-                const viewportContent = document.querySelector('.card-content');
-                const scaleEl = document.querySelector('.card-content-scale');
-                if (!viewportContent || !scaleEl) return;
-
-                // 先重置，测量原始尺寸
-                scaleEl.style.transform = 'none';
-                scaleEl.style.width = '';
-                scaleEl.style.height = '';
-
-                const availableWidth = viewportContent.clientWidth;
-                const availableHeight = viewportContent.clientHeight;
-
-                // scrollWidth/scrollHeight 反映内容的自然尺寸
-                const contentWidth = Math.max(scaleEl.scrollWidth, scaleEl.getBoundingClientRect().width);
-                const contentHeight = Math.max(scaleEl.scrollHeight, scaleEl.getBoundingClientRect().height);
-
-                if (!contentWidth || !contentHeight || !availableWidth || !availableHeight) return;
-
-                // 只缩小不放大，避免"撑太大"
-                const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight);
-
-                // 为避免 transform 后布局尺寸不匹配导致裁切，扩大布局盒子
-                scaleEl.style.width = (availableWidth / scale) + 'px';
-
-                // 顶部对齐更稳；如需居中可计算 offset
-                const offsetX = 0;
-                const offsetY = 0;
-
-                scaleEl.style.transformOrigin = 'top left';
-                scaleEl.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-            }"""
-            )
-            await page.wait_for_timeout(100)
-            actual_height = height
-
-        elif mode == "dynamic":
+        if mode == "dynamic":
             # 动态高度模式：根据内容调整图片高度
             content_height = await page.evaluate(
                 """() => {
@@ -521,15 +452,35 @@ async def render_html_to_image(
             # 确保高度在合理范围内
             actual_height = max(height, min(content_height, max_height))
 
-        else:  # separator 和 auto-split
-            # 获取实际内容高度
-            content_height = await page.evaluate(
+        else:  # separator, auto-split
+            # 内容溢出时自动缩放，保持固定 3:4 尺寸
+            await page.evaluate(
                 """() => {
-                const container = document.querySelector('.card-container');
-                return container ? container.scrollHeight : document.body.scrollHeight;
+                const viewportContent = document.querySelector('.card-content');
+                const scaleEl = document.querySelector('.card-content-scale');
+                if (!viewportContent || !scaleEl) return;
+
+                scaleEl.style.transform = 'none';
+                scaleEl.style.width = '';
+                scaleEl.style.height = '';
+
+                const availableWidth = viewportContent.clientWidth;
+                const availableHeight = viewportContent.clientHeight;
+
+                const contentWidth = Math.max(scaleEl.scrollWidth, scaleEl.getBoundingClientRect().width);
+                const contentHeight = Math.max(scaleEl.scrollHeight, scaleEl.getBoundingClientRect().height);
+
+                if (!contentWidth || !contentHeight || !availableWidth || !availableHeight) return;
+
+                const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight);
+
+                scaleEl.style.width = (availableWidth / scale) + 'px';
+                scaleEl.style.transformOrigin = 'top left';
+                scaleEl.style.transform = `scale(${scale})`;
             }"""
             )
-            actual_height = max(height, content_height)
+            await page.wait_for_timeout(100)
+            actual_height = height
 
         # 截图
         await page.screenshot(
@@ -667,10 +618,8 @@ def main():
 
 分页模式:
   separator   - 按 --- 分隔符手动分页（默认）
-  auto-fit    - 自动缩放文字以填满固定尺寸
   auto-split  - 根据内容高度自动切分
   dynamic     - 根据内容动态调整图片高度
-  glassmorphism - 现代毛玻璃效果风格
 """,
     )
     parser.add_argument("markdown_file", help="Markdown 文件路径")
