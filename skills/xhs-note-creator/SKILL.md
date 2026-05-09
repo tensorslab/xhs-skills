@@ -56,31 +56,46 @@ subtitle: "封面副标题（≤15字）"
 
 ---
 
-### 第三步：渲染图片卡片
+### 第三步：选择主题风格
+
+渲染前，**必须**向用户展示所有可用主题并让用户选择。使用 AskUserQuestion 工具，将 8 种主题作为选项列出：
+
+| 编号 | 主题值 | 名称 | 视觉特征 |
+|---|---|---|---|
+| 1 | `sketch` | 手绘素描 | 手绘线条风格，温暖自然 |
+| 2 | `default` | 默认简约 | 浅灰渐变背景，干净利落 |
+| 3 | `playful-geometric` | 活泼几何 | Memphis 设计风格，色彩丰富 |
+| 4 | `neo-brutalism` | 新粗野主义 | 粗框线条、强对比色块 |
+| 5 | `botanical` | 植物园自然 | 绿植元素，自然清新 |
+| 6 | `professional` | 专业商务 | 商务蓝色调，简洁正式 |
+| 7 | `retro` | 复古怀旧 | 暖色调复古感，年代氛围 |
+| 8 | `terminal` | 终端命令行 | 深色背景，代码终端风格 |
+
+**展示方式**：使用 AskUserQuestion 工具，将 8 种主题作为选项列出，每个选项包含名称和简短描述，等待用户选择后再进入渲染步骤。
+
+---
+
+### 第四步：渲染图片卡片
+
+根据用户在第三步选择的主题，执行渲染命令：
 
 ```bash
-python scripts/render_xhs.py <markdown_file> [options]
+python scripts/render_xhs.py <markdown_file> -t <用户选择的主题> [options]
 ```
 
-**默认主题**：`sketch`（手绘素描风格）  
 **默认分页**：`separator`（按 `---` 分隔）
 
 常用示例：
 
 ```bash
-# 默认（sketch 主题 + 手动分页）
-python scripts/render_xhs.py content.md
+# 使用用户选择的主题 + 手动分页
+python scripts/render_xhs.py content.md -t sketch
 
 # 自动分页（推荐内容长短不定时）
-python scripts/render_xhs.py content.md -m auto-split
-
-# 切换主题
 python scripts/render_xhs.py content.md -t playful-geometric -m auto-split
 ```
 
 生成结果：`cover.png`（封面）+ `card_1.png`、`card_2.png`...（正文卡片）
-
-**可用主题**（`-t`）：`sketch`、`default`、`playful-geometric`、`neo-brutalism`、`botanical`、`professional`、`retro`、`terminal`
 
 **分页模式**（`-m`）：`separator`、`auto-split`、`dynamic`
 
@@ -88,9 +103,9 @@ python scripts/render_xhs.py content.md -t playful-geometric -m auto-split
 
 ---
 
-### 第四步：发布小红书笔记（可选）
+### 第五步：发布小红书笔记（可选）
 
-#### 4.1 Cookie 配置（首次发布前）
+#### 5.1 Cookie 配置（首次发布前）
 
 检查 `.env` 中是否已配置有效的 `XHS_COOKIE`。若未配置或已过期，引导用户登录获取：
 
@@ -131,7 +146,7 @@ python scripts/quick_login.py
 - 有效 Cookie 必须包含 `a1` 和 `web_session` 两个关键字段
 - `.env` 文件查找路径：当前工作目录 → skill 目录 → 项目根目录
 
-#### 4.2 发布笔记
+#### 5.2 发布笔记
 
 所有笔记一律以**仅自己可见**方式发布，用户在小红书中确认内容无误后再自行公开。
 
@@ -145,6 +160,8 @@ python scripts/publish_xhs.py --title "笔记标题" --desc "笔记描述" \
 ```
 
 `--title` 为必填参数（不超过20字），超出将报错并拒绝发布。`--note` 文件内容作为描述正文，`--desc` 为手动指定描述。两者同时传入时以 `--note` 文件为准。
+
+**禁止**将第二步生成的渲染用 Markdown 文件传给 `--note`。`--note` 必须指向第一步生成的纯文本笔记内容，因为渲染用 Markdown 包含 YAML 头部和 `---` 分隔符等排版语法，不适合作为笔记描述。
 
 发布成功后会返回笔记 ID 和链接，用户可在小红书 App 或网页中预览确认。
 
