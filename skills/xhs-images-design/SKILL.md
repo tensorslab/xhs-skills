@@ -1,10 +1,6 @@
 ---
-name: baoyu-xhs-images
+name: xhs-images-design
 description: "AI 生成小红书图文卡片技能。适用于需要 AI 原创插画/卡通/手绘配图的图文并茂内容（种草分享、手绘笔记、知识图解、插画教程、视觉冲击封面等）。本技能通过 AI 图像生成工具创建 1-10 张风格化图片卡片，支持 12 种视觉风格（cute/fresh/warm/bold/minimal/retro/pop/notion/chalkboard/study-notes/screen-print/sketch-notes）、8 种信息布局和 3 种配色方案。触发关键词：\"小红书图片\"、\"生成图片\"、\"AI配图\"、\"插画卡片\"、\"手绘风格\"、\"图文并茂\"、\"XHS images\"、\"种草图\"、\"图解\"。注意：当用户只需要撰写文字笔记并排版发布（不需要 AI 生成原创配图）时，应使用 xhs-note-creator 技能。"
-version: 1.56.2
-metadata:
-  openclaw:
-    homepage: https://github.com/JimLiu/baoyu-skills#baoyu-xhs-images
 ---
 
 
@@ -291,9 +287,9 @@ Check these paths in order; first hit wins:
 
 | Path | Scope |
 |------|-------|
-| `.baoyu-skills/baoyu-image-cards/EXTEND.md` | Project |
-| `${XDG_CONFIG_HOME:-$HOME/.config}/baoyu-skills/baoyu-image-cards/EXTEND.md` | XDG |
-| `$HOME/.baoyu-skills/baoyu-image-cards/EXTEND.md` | User home |
+| `.xhs-skills/xhs-images-design/EXTEND.md` | Project |
+| `${XDG_CONFIG_HOME:-$HOME/.config}/xhs-skills/xhs-images-design/EXTEND.md` | XDG |
+| `$HOME/.xhs-skills/xhs-images-design/EXTEND.md` | User home |
 
 - **Found** → read, parse, print a summary (style / layout / watermark / language), continue.
 - **Not found + interactive** → run first-time setup (see `references/config/first-time-setup.md`) and save before anything else. Do NOT analyze content or ask style questions until preferences exist — this keeps first-run behavior predictable.
@@ -444,7 +440,7 @@ Always update the prompt file before regenerating — it's the source of truth a
 EXTEND.md lives at the first matching path listed in Step 0. Three ways to change it:
 
 - **Edit directly** — open EXTEND.md and change fields. Full schema: `references/config/preferences-schema.md`.
-- **Reconfigure interactively** — delete EXTEND.md (or ask "reconfigure baoyu-xhs-images preferences" / "重新配置"). The next run re-triggers first-time setup.
+- **Reconfigure interactively** — delete EXTEND.md (or ask "reconfigure xhs-images-design preferences" / "重新配置"). The next run re-triggers first-time setup.
 - **Common one-line edits**:
   - `preferred_image_backend: auto` — default; runtime-native tool wins, falls back to the only installed backend, asks only if multiple non-native are present.
   - `preferred_image_backend: codex-imagegen` — pin to Codex's built-in.

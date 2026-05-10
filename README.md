@@ -11,7 +11,7 @@
 | 技能 | 定位 | 适用场景 |
 |------|------|----------|
 | **xhs-note-creator** | 文字笔记创作与发布 | 撰写文案 → 排版渲染卡片 → 发布小红书 |
-| **baoyu-xhs-images** | AI 图文卡片生成 | AI 生成插画/卡通/手绘风格的原创配图 |
+| **xhs-images-design** | AI 图文卡片生成 | AI 生成插画/卡通/手绘风格的原创配图 |
 
 ---
 
@@ -176,13 +176,15 @@ python skills/xhs-note-creator/scripts/publish_xhs.py \
 
 ---
 
-## 技能二：baoyu-xhs-images（AI 图文卡片生成）
+## 技能二：xhs-images-design（AI 图文卡片生成）
+
+> 本技能源自 [JimLiu/baoyu-skills](https://github.com/JimLiu/baoyu-skills) 项目中的 `baoyu-xhs-images` 技能，基于原项目进行了适配和调整。感谢原作者的贡献。
 
 AI 生成插画/卡通/手绘配图的图文并茂内容：种草分享、手绘笔记、知识图解、视觉冲击封面等。
 
 支持 12 种视觉风格、8 种信息布局和 3 种配色方案，通过 AI 图像生成工具创建 1-10 张风格化图片卡片。
 
-详见 `skills/baoyu-xhs-images/SKILL.md`。
+详见 `skills/xhs-images-design/SKILL.md`。
 
 ---
 
@@ -228,7 +230,7 @@ Auto-Redbook-Skills/
 │   │   │       └── sketch.css
 │   │   └── references/
 │   │       └── params.md             # 完整参数参考
-│   └── baoyu-xhs-images/             # AI 图文卡片技能
+│   └── xhs-images-design/             # AI 图文卡片技能
 │       ├── SKILL.md
 │       └── references/               # 风格/布局/配色参考文档
 ```
@@ -246,6 +248,7 @@ Auto-Redbook-Skills/
 
 ## 致谢
 
+- [baoyu-skills](https://github.com/JimLiu/baoyu-skills) - xhs-images-design 技能的原始来源，感谢 JimLiu 的出色工作
 - [Playwright](https://playwright.dev/) - 浏览器自动化渲染
 - [Marked](https://marked.js.org/) - Markdown 解析
 - [xhs](https://github.com/ReaJason/xhs) - 小红书 API 客户端

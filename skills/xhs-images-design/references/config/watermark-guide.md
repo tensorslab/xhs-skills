@@ -1,6 +1,6 @@
 ---
 name: watermark-guide
-description: Watermark configuration guide for baoyu-xhs-images
+description: Watermark configuration guide for xhs-images-design
 ---
 
 # Watermark Guide
