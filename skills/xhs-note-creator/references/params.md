@@ -30,6 +30,7 @@ python scripts/render_xhs.py <markdown_file> [options]
 | `professional` | 专业商务 | 简洁商务蓝 |
 | `retro` | 复古怀旧 | 暖色复古感 |
 | `terminal` | 终端命令行 | 深色代码终端风格 |
+| `pink-notebook` | 粉色笔记本 | 粉色格子纸、手绘贴纸、玫瑰棕文字 |
 
 ### 分页模式（`--mode`）
 

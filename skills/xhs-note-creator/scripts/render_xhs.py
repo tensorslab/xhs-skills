@@ -80,6 +80,7 @@ AVAILABLE_THEMES = [
     "terminal",
     "sketch",
     "glassmorphism",
+    "pink-notebook",
 ]
 
 # 分页模式
@@ -171,6 +172,7 @@ def generate_cover_html(metadata: dict, theme: str, width: int, height: int) -> 
         "terminal": "linear-gradient(180deg, #0D1117 0%, #21262D 100%)",
         "sketch": "linear-gradient(180deg, #555555 0%, #999999 100%)",
         "glassmorphism": "linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 99%, #FAD0C4 100%)",
+        "pink-notebook": "linear-gradient(180deg, #FFE5EF 0%, #FFD7E6 48%, #FFF7FA 100%)",
     }
     bg = theme_backgrounds.get(theme, theme_backgrounds["default"])
 
@@ -185,8 +187,51 @@ def generate_cover_html(metadata: dict, theme: str, width: int, height: int) -> 
         "terminal": "linear-gradient(180deg, #39D353 0%, #58A6FF 100%)",
         "sketch": "linear-gradient(180deg, #111827 0%, #6B7280 100%)",
         "glassmorphism": "linear-gradient(180deg, #FF0844 0%, #FFB199 100%)",
+        "pink-notebook": "linear-gradient(180deg, #B94C6B 0%, #E783A2 100%)",
     }
     title_bg = title_gradients.get(theme, title_gradients["default"])
+
+    if theme == "pink-notebook":
+        cover_inner_bg = """
+            #FFF9FB;
+            background-image:
+                linear-gradient(rgba(240, 154, 178, 0.26) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(240, 154, 178, 0.26) 1px, transparent 1px);
+            background-size: 38px 38px;
+            border: 5px solid #F4A8BD;
+            box-shadow: 18px 20px 0 rgba(219, 124, 151, 0.20);
+        """
+        cover_radius = "38px"
+        subtitle_color = "#8F4E60"
+        extra_cover_css = """
+        .cover-inner::before {
+            content: "";
+            position: absolute;
+            width: 210px;
+            height: 62px;
+            top: 58px;
+            right: 78px;
+            background: rgba(255, 196, 211, 0.72);
+            border: 3px dashed #E783A2;
+            border-radius: 999px;
+            transform: rotate(7deg);
+        }
+
+        .cover-inner::after {
+            content: "♡";
+            position: absolute;
+            right: 112px;
+            bottom: 150px;
+            font-size: 86px;
+            color: #F08BA9;
+            transform: rotate(-10deg);
+        }
+        """
+    else:
+        cover_inner_bg = "#F3F3F3"
+        cover_radius = "25px"
+        subtitle_color = "#000000"
+        extra_cover_css = ""
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -224,11 +269,12 @@ def generate_cover_html(metadata: dict, theme: str, width: int, height: int) -> 
             height: {int(height * 0.91)}px;
             left: {int(width * 0.06)}px;
             top: {int(height * 0.045)}px;
-            background: #F3F3F3;
-            border-radius: 25px;
+            background: {cover_inner_bg};
+            border-radius: {cover_radius};
             display: flex;
             flex-direction: column;
             padding: {int(width * 0.074)}px {int(width * 0.079)}px;
+            position: relative;
         }}
         
         .cover-emoji {{
@@ -255,9 +301,11 @@ def generate_cover_html(metadata: dict, theme: str, width: int, height: int) -> 
             font-weight: 350;
             font-size: {int(width * 0.067)}px;
             line-height: 1.4;
-            color: #000000;
+            color: {subtitle_color};
             margin-top: auto;
         }}
+
+        {extra_cover_css}
     </style>
 </head>
 <body>
@@ -300,8 +348,10 @@ def generate_card_html(
         "terminal": "linear-gradient(135deg, #0D1117 0%, #161B22 100%)",
         "sketch": "linear-gradient(135deg, #555555 0%, #888888 100%)",
         "glassmorphism": "linear-gradient(135deg, #A18CD1 0%, #FBC2EB 100%)",
+        "pink-notebook": "linear-gradient(135deg, #FFE1EC 0%, #FFD5E4 52%, #FFF6F9 100%)",
     }
     bg = theme_backgrounds.get(theme, theme_backgrounds["default"])
+    page_number_color = "rgba(143, 78, 96, 0.70)" if theme == "pink-notebook" else "rgba(255, 255, 255, 0.8)"
 
     # 根据模式设置不同的容器样式
     if mode == "dynamic":
@@ -398,7 +448,7 @@ def generate_card_html(
             bottom: 80px;
             right: 80px;
             font-size: 36px;
-            color: rgba(255, 255, 255, 0.8);
+            color: {page_number_color};
             font-weight: 500;
         }}
     </style>
@@ -615,6 +665,8 @@ def main():
   retro             - 复古怀旧风格
   terminal          - 终端/命令行风格
   sketch            - 手绘素描风格
+  glassmorphism     - 现代毛玻璃效果风格
+  pink-notebook     - 粉色格子笔记本手绘风格
 
 分页模式:
   separator   - 按 --- 分隔符手动分页（默认）

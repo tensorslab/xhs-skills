@@ -58,7 +58,7 @@ subtitle: "封面副标题（≤15字）"
 
 ### 第三步：选择主题风格
 
-渲染前，**必须**向用户展示所有可用主题并让用户选择。使用 AskUserQuestion 工具，将 8 种主题作为选项列出：
+渲染前，**必须**向用户展示所有可用主题并让用户选择。使用 AskUserQuestion 工具，将 9 种主题作为选项列出：
 
 | 编号 | 主题值 | 名称 | 视觉特征 |
 |---|---|---|---|
@@ -70,8 +70,9 @@ subtitle: "封面副标题（≤15字）"
 | 6 | `professional` | 专业商务 | 商务蓝色调，简洁正式 |
 | 7 | `retro` | 复古怀旧 | 暖色调复古感，年代氛围 |
 | 8 | `terminal` | 终端命令行 | 深色背景，代码终端风格 |
+| 9 | `pink-notebook` | 粉色笔记本 | 粉色格子纸、手绘贴纸、玫瑰棕文字 |
 
-**展示方式**：使用 AskUserQuestion 工具，将 8 种主题作为选项列出，每个选项包含名称和简短描述，等待用户选择后再进入渲染步骤。
+**展示方式**：使用 AskUserQuestion 工具，将 9 种主题作为选项列出，每个选项包含名称和简短描述，等待用户选择后再进入渲染步骤。
 
 ---
 
@@ -170,7 +171,7 @@ python scripts/publish_xhs.py --title "笔记标题" --desc "笔记描述" \
 ## 技能资源
 
 ### 脚本
-- `scripts/render_xhs.py` — 渲染脚本（主推，8 主题 + 4 分页模式）
+- `scripts/render_xhs.py` — 渲染脚本（主推，9 主题 + 4 分页模式）
 - `scripts/render_xhs_v2.py` — 渲染脚本 V2（备用，7 种渐变色彩风格）
 - `scripts/publish_xhs.py` — 发布脚本
 - `scripts/quick_login.py` — Cookie 获取脚本（浏览器登录，自动保存到 `.env`）

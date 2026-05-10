@@ -1,0 +1,207 @@
+/* Pink Notebook - feminine hand-drawn grid notebook style */
+
+.card-inner {
+  background-color: #fff9fb;
+  background-image:
+    linear-gradient(rgba(240, 154, 178, 0.24) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240, 154, 178, 0.24) 1px, transparent 1px);
+  background-size: 38px 38px;
+  border: 5px solid #f4a8bd;
+  border-radius: 38px;
+  box-shadow: 16px 18px 0 rgba(219, 124, 151, 0.18);
+  position: relative;
+}
+
+.card-inner::before {
+  content: "";
+  position: absolute;
+  width: 176px;
+  height: 52px;
+  top: 34px;
+  right: 58px;
+  background: rgba(255, 207, 219, 0.80);
+  border: 3px dashed #e783a2;
+  border-radius: 999px;
+  transform: rotate(6deg);
+}
+
+.card-inner::after {
+  content: "♡";
+  position: absolute;
+  right: 80px;
+  bottom: 58px;
+  font-size: 62px;
+  line-height: 1;
+  color: #ee8cab;
+  transform: rotate(-9deg);
+}
+
+.card-content {
+  color: #7e4a59;
+  font-size: 42px;
+  line-height: 1.78;
+  position: relative;
+  z-index: 1;
+}
+
+.card-content h1 {
+  display: inline;
+  font-size: 70px;
+  font-weight: 800;
+  color: #b94c6b;
+  line-height: 1.35;
+  background: linear-gradient(transparent 62%, rgba(255, 198, 214, 0.86) 62%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0 10px 4px;
+}
+
+.card-content h1 + p {
+  margin-top: 46px;
+}
+
+.card-content h2 {
+  font-size: 56px;
+  font-weight: 760;
+  color: #b94c6b;
+  margin: 50px 0 25px;
+  line-height: 1.38;
+  border-bottom: 3px dashed #eba4b8;
+  padding-bottom: 12px;
+}
+
+.card-content h3 {
+  font-size: 48px;
+  font-weight: 700;
+  color: #bd637b;
+  margin: 40px 0 20px;
+}
+
+.card-content p {
+  margin-bottom: 34px;
+}
+
+.card-content strong,
+.card-content b {
+  color: #a94763;
+  background-color: rgba(255, 211, 87, 0.38);
+  padding: 0.04em 0.25em;
+  border-radius: 12px;
+}
+
+.card-content em,
+.card-content i {
+  color: #c56983;
+}
+
+.card-content a {
+  color: #c65d7c;
+  text-decoration-color: #f0a7bc;
+  text-decoration-style: wavy;
+  text-underline-offset: 7px;
+}
+
+.card-content ul,
+.card-content ol {
+  margin: 30px 0;
+  padding-left: 58px;
+}
+
+.card-content li {
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.card-content li::marker {
+  color: #e783a2;
+}
+
+.card-content blockquote {
+  margin: 36px 0;
+  padding: 30px 38px;
+  color: #7e4a59;
+  background-color: #fff1b8;
+  border: 3px dashed #e9b6c4;
+  border-radius: 18px;
+  box-shadow: 6px 7px 0 rgba(232, 158, 178, 0.22);
+  transform: rotate(-0.6deg);
+}
+
+.card-content blockquote p {
+  margin: 0;
+}
+
+.card-content code {
+  font-family: "Noto Sans SC", "PingFang SC", sans-serif;
+  font-size: 38px;
+  color: #a94763;
+  background-color: #fff1f5;
+  padding: 6px 16px;
+  border: 2px dashed #f0a7bc;
+  border-radius: 12px;
+}
+
+.card-content pre {
+  margin: 35px 0;
+  padding: 38px;
+  color: #7e4a59;
+  background-color: #fff1f5;
+  border: 3px dashed #eaa0b6;
+  border-radius: 18px;
+  overflow-x: visible;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.card-content pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-size: 36px;
+  line-height: 1.5;
+}
+
+.card-content hr {
+  margin: 50px 0;
+  border: none;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    #f0a7bc,
+    #f0a7bc 10px,
+    transparent 10px,
+    transparent 20px
+  );
+}
+
+.card-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 35px auto;
+  border: 4px solid #f0a7bc;
+  border-radius: 18px;
+  box-shadow: 8px 8px 0 rgba(232, 158, 178, 0.22);
+  transform: rotate(0.5deg);
+}
+
+.tags-container {
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 3px dashed #edb1c1;
+}
+
+.tag {
+  display: inline-block;
+  background-color: #fff1f5;
+  color: #a94763;
+  padding: 12px 26px;
+  border: 2px dashed #e99ab2;
+  border-radius: 999px;
+  font-size: 34px;
+  margin: 10px 15px 10px 0;
+  font-weight: 650;
+  transform: rotate(-1deg);
+}
