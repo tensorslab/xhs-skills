@@ -1,8 +1,9 @@
 ---
 name: xhs-images-design
-description: "AI 生成小红书图文卡片技能。适用于需要 AI 原创插画/卡通/手绘配图的图文并茂内容（种草分享、手绘笔记、知识图解、插画教程、视觉冲击封面等）。本技能通过 AI 图像生成工具创建 1-10 张风格化图片卡片，支持 12 种视觉风格（cute/fresh/warm/bold/minimal/retro/pop/notion/chalkboard/study-notes/screen-print/sketch-notes）、8 种信息布局和 3 种配色方案。触发关键词：\"小红书图片\"、\"生成图片\"、\"AI配图\"、\"插画卡片\"、\"手绘风格\"、\"图文并茂\"、\"XHS images\"、\"种草图\"、\"图解\"。注意：当用户只需要撰写文字笔记并排版发布（不需要 AI 生成原创配图）时，应使用 xhs-note-creator 技能。"
+description: 'AI 生成小红书图文卡片技能。适用于需要 AI 原创插画/卡通/手绘配图的图文并茂内容（种草分享、手绘笔记、知识图解、插画教程、视觉冲击封面等）。本技能通过 AI 图像生成工具创建 1-10 张风格化图片卡片，支持 12 种视觉风格（cute/fresh/warm/bold/minimal/retro/pop/notion/chalkboard/study-notes/screen-print/sketch-notes）、8 种信息布局和 3 种配色方案。触发关键词："小红书图片"、"生成图片"、"AI配图"、"插画卡片"、"手绘风格"、"图文并茂"、"XHS images"、"种草图"、"图解"。注意：当用户只需要撰写文字笔记并排版发布（不需要 AI 生成原创配图）时，应使用 xhs-note-creator 技能。'
 ---
 
+<!-- Based on baoyu-skills by JimLiu. -->
 
 # Image Card Series Generator
 
@@ -53,23 +54,23 @@ Respond in the user's language across questions, progress, errors, and completio
 
 ## Options
 
-| Option | Description |
-|--------|-------------|
-| `--style <name>` | Visual style (see Styles below) |
-| `--layout <name>` | Information layout (see Layouts below) |
-| `--palette <name>` | Color override: macaron / warm / neon |
-| `--preset <name>` | Style + layout + optional palette shorthand (see Presets below; per-preset prompt fragments in `references/style-presets.md`) |
-| `--ref <files...>` | Reference images applied to image 1 as the series anchor |
-| `--yes` | Non-interactive: skip all confirmations, use EXTEND.md or built-in defaults, auto-confirm recommended plan (Path A) |
+| Option             | Description                                                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `--style <name>`   | Visual style (see Styles below)                                                                                               |
+| `--layout <name>`  | Information layout (see Layouts below)                                                                                        |
+| `--palette <name>` | Color override: macaron / warm / neon                                                                                         |
+| `--preset <name>`  | Style + layout + optional palette shorthand (see Presets below; per-preset prompt fragments in `references/style-presets.md`) |
+| `--ref <files...>` | Reference images applied to image 1 as the series anchor                                                                      |
+| `--yes`            | Non-interactive: skip all confirmations, use EXTEND.md or built-in defaults, auto-confirm recommended plan (Path A)           |
 
 ## Dimensions
 
 Three independent knobs combine freely:
 
-| Dimension | Controls | Options |
-|-----------|----------|---------|
-| **Style** | Visual aesthetics (lines, decorations, rendering) | 12 styles (see Styles below) |
-| **Layout** | Information structure (density, arrangement) | 8 layouts (see Layouts below) |
+| Dimension              | Controls                                            | Options                                    |
+| ---------------------- | --------------------------------------------------- | ------------------------------------------ |
+| **Style**              | Visual aesthetics (lines, decorations, rendering)   | 12 styles (see Styles below)               |
+| **Layout**             | Information structure (density, arrangement)        | 8 layouts (see Layouts below)              |
 | **Palette** (optional) | Color override, replaces the style's default colors | macaron / warm / neon (see Palettes below) |
 
 Example: `--style notion --layout dense` makes an intellectual knowledge card; add `--palette macaron` to soften the colors without changing notion's rendering rules. A `--preset` is a shorthand for style + layout (+ optional palette).
@@ -78,35 +79,35 @@ Example: `--style notion --layout dense` makes an intellectual knowledge card; a
 
 ## Styles (12)
 
-| Style | Description |
-|-------|-------------|
-| `cute` (Default) | Sweet, adorable, girly aesthetic |
-| `fresh` | Clean, refreshing, natural |
-| `warm` | Cozy, friendly, approachable |
-| `bold` | High impact, attention-grabbing |
-| `minimal` | Ultra-clean, sophisticated |
-| `retro` | Vintage, nostalgic, trendy |
-| `pop` | Vibrant, energetic, eye-catching |
-| `notion` | Minimalist hand-drawn line art, intellectual |
-| `chalkboard` | Colorful chalk on black board, educational |
-| `study-notes` | Realistic handwritten photo style, blue pen + red annotations + yellow highlighter |
-| `screen-print` | Bold poster art, halftone textures, limited colors, symbolic storytelling |
-| `sketch-notes` | Hand-drawn educational infographic, macaron pastels on warm cream, wobble lines |
+| Style            | Description                                                                        |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| `cute` (Default) | Sweet, adorable, girly aesthetic                                                   |
+| `fresh`          | Clean, refreshing, natural                                                         |
+| `warm`           | Cozy, friendly, approachable                                                       |
+| `bold`           | High impact, attention-grabbing                                                    |
+| `minimal`        | Ultra-clean, sophisticated                                                         |
+| `retro`          | Vintage, nostalgic, trendy                                                         |
+| `pop`            | Vibrant, energetic, eye-catching                                                   |
+| `notion`         | Minimalist hand-drawn line art, intellectual                                       |
+| `chalkboard`     | Colorful chalk on black board, educational                                         |
+| `study-notes`    | Realistic handwritten photo style, blue pen + red annotations + yellow highlighter |
+| `screen-print`   | Bold poster art, halftone textures, limited colors, symbolic storytelling          |
+| `sketch-notes`   | Hand-drawn educational infographic, macaron pastels on warm cream, wobble lines    |
 
 Per-style specifications: `references/presets/<style>.md`.
 
 ## Layouts (8)
 
-| Layout | Description |
-|--------|-------------|
-| `sparse` (Default) | 1-2 points, maximum impact |
-| `balanced` | 3-4 points, standard |
-| `dense` | 5-8 points, knowledge-card style |
-| `list` | Enumeration / ranking (4-7 items) |
-| `comparison` | Side-by-side contrast |
-| `flow` | Process / timeline (3-6 steps) |
-| `mindmap` | Center-radial (4-8 branches) |
-| `quadrant` | Four-quadrant / circular sections |
+| Layout             | Description                       |
+| ------------------ | --------------------------------- |
+| `sparse` (Default) | 1-2 points, maximum impact        |
+| `balanced`         | 3-4 points, standard              |
+| `dense`            | 5-8 points, knowledge-card style  |
+| `list`             | Enumeration / ranking (4-7 items) |
+| `comparison`       | Side-by-side contrast             |
+| `flow`             | Process / timeline (3-6 steps)    |
+| `mindmap`          | Center-radial (4-8 branches)      |
+| `quadrant`         | Four-quadrant / circular sections |
 
 Layout specs: `references/elements/canvas.md`.
 
@@ -114,11 +115,11 @@ Layout specs: `references/elements/canvas.md`.
 
 Replaces the style's colors while keeping rendering rules (line treatment, textures) intact.
 
-| Palette | Background | Zone Colors | Accent | Feel |
-|---------|------------|-------------|--------|------|
-| `macaron` | Warm cream #F5F0E8 | Blue #A8D8EA, Lavender #D5C6E0, Mint #B5E5CF, Peach #F8D5C4 | Coral #E8655A | Soft, educational |
-| `warm` | Soft peach #FFECD2 | Orange #ED8936, Terracotta #C05621, Golden #F6AD55, Rose #D4A09A | Sienna #A0522D | Earth tones, cozy |
-| `neon` | Dark purple #1A1025 | Cyan #00F5FF, Magenta #FF00FF, Green #39FF14, Pink #FF6EC7 | Yellow #FFFF00 | High-energy, futuristic |
+| Palette   | Background          | Zone Colors                                                      | Accent         | Feel                    |
+| --------- | ------------------- | ---------------------------------------------------------------- | -------------- | ----------------------- |
+| `macaron` | Warm cream #F5F0E8  | Blue #A8D8EA, Lavender #D5C6E0, Mint #B5E5CF, Peach #F8D5C4      | Coral #E8655A  | Soft, educational       |
+| `warm`    | Soft peach #FFECD2  | Orange #ED8936, Terracotta #C05621, Golden #F6AD55, Rose #D4A09A | Sienna #A0522D | Earth tones, cozy       |
+| `neon`    | Dark purple #1A1025 | Cyan #00F5FF, Magenta #FF00FF, Green #39FF14, Pink #FF6EC7       | Yellow #FFFF00 | High-energy, futuristic |
 
 Palette specs: `references/palettes/<palette>.md`.
 
@@ -128,54 +129,54 @@ Quick-start combos, grouped by scenario. Use `--preset <name>` or recommend duri
 
 **Knowledge & Learning**:
 
-| Preset | Style | Layout | Best For |
-|--------|-------|--------|----------|
-| `knowledge-card` | notion | dense | 干货知识卡、概念科普 |
-| `checklist` | notion | list | 清单、排行榜 |
-| `concept-map` | notion | mindmap | 概念图、知识脉络 |
-| `swot` | notion | quadrant | SWOT 分析、四象限 |
-| `tutorial` | chalkboard | flow | 教程步骤、操作流程 |
-| `classroom` | chalkboard | balanced | 课堂笔记、知识讲解 |
-| `study-guide` | study-notes | dense | 学习笔记、考试重点 |
-| `hand-drawn-edu` | sketch-notes | flow | 手绘教程、流程图解 |
-| `sketch-card` | sketch-notes | dense | 手绘知识卡 |
-| `sketch-summary` | sketch-notes | balanced | 手绘总结、图文笔记 |
+| Preset           | Style        | Layout   | Best For             |
+| ---------------- | ------------ | -------- | -------------------- |
+| `knowledge-card` | notion       | dense    | 干货知识卡、概念科普 |
+| `checklist`      | notion       | list     | 清单、排行榜         |
+| `concept-map`    | notion       | mindmap  | 概念图、知识脉络     |
+| `swot`           | notion       | quadrant | SWOT 分析、四象限    |
+| `tutorial`       | chalkboard   | flow     | 教程步骤、操作流程   |
+| `classroom`      | chalkboard   | balanced | 课堂笔记、知识讲解   |
+| `study-guide`    | study-notes  | dense    | 学习笔记、考试重点   |
+| `hand-drawn-edu` | sketch-notes | flow     | 手绘教程、流程图解   |
+| `sketch-card`    | sketch-notes | dense    | 手绘知识卡           |
+| `sketch-summary` | sketch-notes | balanced | 手绘总结、图文笔记   |
 
 **Lifestyle & Sharing**:
 
-| Preset | Style | Layout | Best For |
-|--------|-------|--------|----------|
-| `cute-share` | cute | balanced | 少女风分享、日常种草 |
-| `girly` | cute | sparse | 甜美封面、氛围感 |
-| `cozy-story` | warm | balanced | 生活故事、情感分享 |
-| `product-review` | fresh | comparison | 产品对比、测评 |
-| `nature-flow` | fresh | flow | 健康流程、自然主题 |
+| Preset           | Style | Layout     | Best For             |
+| ---------------- | ----- | ---------- | -------------------- |
+| `cute-share`     | cute  | balanced   | 少女风分享、日常种草 |
+| `girly`          | cute  | sparse     | 甜美封面、氛围感     |
+| `cozy-story`     | warm  | balanced   | 生活故事、情感分享   |
+| `product-review` | fresh | comparison | 产品对比、测评       |
+| `nature-flow`    | fresh | flow       | 健康流程、自然主题   |
 
 **Impact & Opinion**:
 
-| Preset | Style | Layout | Best For |
-|--------|-------|--------|----------|
-| `warning` | bold | list | 避坑指南、重要提醒 |
-| `versus` | bold | comparison | 正反对比 |
-| `clean-quote` | minimal | sparse | 金句、极简封面 |
-| `pro-summary` | minimal | balanced | 专业总结、商务内容 |
+| Preset        | Style   | Layout     | Best For           |
+| ------------- | ------- | ---------- | ------------------ |
+| `warning`     | bold    | list       | 避坑指南、重要提醒 |
+| `versus`      | bold    | comparison | 正反对比           |
+| `clean-quote` | minimal | sparse     | 金句、极简封面     |
+| `pro-summary` | minimal | balanced   | 专业总结、商务内容 |
 
 **Trend & Entertainment**:
 
-| Preset | Style | Layout | Best For |
-|--------|-------|--------|----------|
-| `retro-ranking` | retro | list | 复古排行、经典盘点 |
-| `throwback` | retro | balanced | 怀旧分享 |
-| `pop-facts` | pop | list | 趣味冷知识 |
-| `hype` | pop | sparse | 炸裂封面、惊叹分享 |
+| Preset          | Style | Layout   | Best For           |
+| --------------- | ----- | -------- | ------------------ |
+| `retro-ranking` | retro | list     | 复古排行、经典盘点 |
+| `throwback`     | retro | balanced | 怀旧分享           |
+| `pop-facts`     | pop   | list     | 趣味冷知识         |
+| `hype`          | pop   | sparse   | 炸裂封面、惊叹分享 |
 
 **Poster & Editorial**:
 
-| Preset | Style | Layout | Best For |
-|--------|-------|--------|----------|
-| `poster` | screen-print | sparse | 海报风封面、影评书评 |
-| `editorial` | screen-print | balanced | 观点文章、文化评论 |
-| `cinematic` | screen-print | comparison | 电影对比、戏剧张力 |
+| Preset      | Style        | Layout     | Best For             |
+| ----------- | ------------ | ---------- | -------------------- |
+| `poster`    | screen-print | sparse     | 海报风封面、影评书评 |
+| `editorial` | screen-print | balanced   | 观点文章、文化评论   |
+| `cinematic` | screen-print | comparison | 电影对比、戏剧张力   |
 
 Full prompt-fragment definitions: `references/style-presets.md`.
 
@@ -183,19 +184,19 @@ Full prompt-fragment definitions: `references/style-presets.md`.
 
 Match content signals to the best combo. First row whose keywords appear wins; fall back to `cute-share` if nothing matches.
 
-| Signals in source | Style | Layout | Recommended preset |
-|-------------------|-------|--------|--------------------|
-| beauty, fashion, cute, girl, pink | `cute` | sparse/balanced | `cute-share`, `girly` |
-| health, nature, fresh, organic | `fresh` | balanced/flow | `product-review`, `nature-flow` |
-| life, story, emotion, warm | `warm` | balanced | `cozy-story` |
-| warning, important, must, critical | `bold` | list/comparison | `warning`, `versus` |
-| professional, business, elegant | `minimal` | sparse/balanced | `clean-quote`, `pro-summary` |
-| classic, vintage, traditional | `retro` | balanced | `throwback`, `retro-ranking` |
-| fun, exciting, wow, amazing | `pop` | sparse/list | `hype`, `pop-facts` |
-| knowledge, concept, productivity, SaaS | `notion` | dense/list | `knowledge-card`, `checklist` |
-| education, tutorial, learning, classroom | `chalkboard` | balanced/dense | `tutorial`, `classroom` |
-| notes, handwritten, study guide, realistic | `study-notes` | dense/list/mindmap | `study-guide` |
-| movie, poster, opinion, editorial, cinematic | `screen-print` | sparse/comparison | `poster`, `editorial`, `cinematic` |
+| Signals in source                             | Style          | Layout              | Recommended preset                                |
+| --------------------------------------------- | -------------- | ------------------- | ------------------------------------------------- |
+| beauty, fashion, cute, girl, pink             | `cute`         | sparse/balanced     | `cute-share`, `girly`                             |
+| health, nature, fresh, organic                | `fresh`        | balanced/flow       | `product-review`, `nature-flow`                   |
+| life, story, emotion, warm                    | `warm`         | balanced            | `cozy-story`                                      |
+| warning, important, must, critical            | `bold`         | list/comparison     | `warning`, `versus`                               |
+| professional, business, elegant               | `minimal`      | sparse/balanced     | `clean-quote`, `pro-summary`                      |
+| classic, vintage, traditional                 | `retro`        | balanced            | `throwback`, `retro-ranking`                      |
+| fun, exciting, wow, amazing                   | `pop`          | sparse/list         | `hype`, `pop-facts`                               |
+| knowledge, concept, productivity, SaaS        | `notion`       | dense/list          | `knowledge-card`, `checklist`                     |
+| education, tutorial, learning, classroom      | `chalkboard`   | balanced/dense      | `tutorial`, `classroom`                           |
+| notes, handwritten, study guide, realistic    | `study-notes`  | dense/list/mindmap  | `study-guide`                                     |
+| movie, poster, opinion, editorial, cinematic  | `screen-print` | sparse/comparison   | `poster`, `editorial`, `cinematic`                |
 | hand-drawn, infographic, workflow, 手绘, 图解 | `sketch-notes` | flow/balanced/dense | `hand-drawn-edu`, `sketch-card`, `sketch-summary` |
 
 ## Style × Layout Matrix
@@ -203,45 +204,46 @@ Match content signals to the best combo. First row whose keywords appear wins; f
 Compatibility scores (✓✓ highly recommended, ✓ works well, ✗ avoid). Use when the user picks a non-default combo and you want to flag a poor match.
 
 |              | sparse | balanced | dense | list | comparison | flow | mindmap | quadrant |
-|--------------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| cute         | ✓✓ | ✓✓ | ✓  | ✓✓ | ✓  | ✓  | ✓  | ✓  |
-| fresh        | ✓✓ | ✓✓ | ✓  | ✓  | ✓  | ✓✓ | ✓  | ✓  |
-| warm         | ✓✓ | ✓✓ | ✓  | ✓  | ✓✓ | ✓  | ✓  | ✓  |
-| bold         | ✓✓ | ✓  | ✓  | ✓✓ | ✓✓ | ✓  | ✓  | ✓✓ |
-| minimal      | ✓✓ | ✓✓ | ✓✓ | ✓  | ✓  | ✓  | ✓  | ✓  |
-| retro        | ✓✓ | ✓✓ | ✓  | ✓✓ | ✓  | ✓  | ✓  | ✓  |
-| pop          | ✓✓ | ✓✓ | ✓  | ✓✓ | ✓✓ | ✓  | ✓  | ✓  |
-| notion       | ✓✓ | ✓✓ | ✓✓ | ✓✓ | ✓✓ | ✓✓ | ✓✓ | ✓✓ |
-| chalkboard   | ✓✓ | ✓✓ | ✓✓ | ✓✓ | ✓  | ✓✓ | ✓✓ | ✓  |
-| study-notes  | ✗  | ✓  | ✓✓ | ✓✓ | ✓  | ✓  | ✓✓ | ✓  |
-| screen-print | ✓✓ | ✓✓ | ✗  | ✓  | ✓✓ | ✓  | ✗  | ✓✓ |
-| sketch-notes | ✓  | ✓✓ | ✓✓ | ✓✓ | ✓  | ✓✓ | ✓✓ | ✓  |
+| ------------ | :----: | :------: | :---: | :--: | :--------: | :--: | :-----: | :------: |
+| cute         |   ✓✓   |    ✓✓    |   ✓   |  ✓✓  |     ✓      |  ✓   |    ✓    |    ✓     |
+| fresh        |   ✓✓   |    ✓✓    |   ✓   |  ✓   |     ✓      |  ✓✓  |    ✓    |    ✓     |
+| warm         |   ✓✓   |    ✓✓    |   ✓   |  ✓   |     ✓✓     |  ✓   |    ✓    |    ✓     |
+| bold         |   ✓✓   |    ✓     |   ✓   |  ✓✓  |     ✓✓     |  ✓   |    ✓    |    ✓✓    |
+| minimal      |   ✓✓   |    ✓✓    |  ✓✓   |  ✓   |     ✓      |  ✓   |    ✓    |    ✓     |
+| retro        |   ✓✓   |    ✓✓    |   ✓   |  ✓✓  |     ✓      |  ✓   |    ✓    |    ✓     |
+| pop          |   ✓✓   |    ✓✓    |   ✓   |  ✓✓  |     ✓✓     |  ✓   |    ✓    |    ✓     |
+| notion       |   ✓✓   |    ✓✓    |  ✓✓   |  ✓✓  |     ✓✓     |  ✓✓  |   ✓✓    |    ✓✓    |
+| chalkboard   |   ✓✓   |    ✓✓    |  ✓✓   |  ✓✓  |     ✓      |  ✓✓  |   ✓✓    |    ✓     |
+| study-notes  |   ✗    |    ✓     |  ✓✓   |  ✓✓  |     ✓      |  ✓   |   ✓✓    |    ✓     |
+| screen-print |   ✓✓   |    ✓✓    |   ✗   |  ✓   |     ✓✓     |  ✓   |    ✗    |    ✓✓    |
+| sketch-notes |   ✓    |    ✓✓    |  ✓✓   |  ✓✓  |     ✓      |  ✓✓  |   ✓✓    |    ✓     |
 
 ## Outline Strategies
 
 Three differentiated approaches — each produces a structurally different outline. The workflow recommends one; Path C generates all three and lets the user choose.
 
-| Strategy | Concept | Best for | Structure |
-|----------|---------|----------|-----------|
-| **A — Story-Driven** | Personal experience as the thread, emotional resonance first | Reviews, personal shares, transformation | Hook → Problem → Discovery → Experience → Conclusion |
-| **B — Information-Dense** | Value-first, efficient information delivery | Tutorials, comparisons, checklists | Core conclusion → Info card → Pros/Cons → Recommendation |
-| **C — Visual-First** | Visual impact as core, minimal text | High-aesthetic products, lifestyle, mood content | Hero image → Detail shots → Lifestyle scene → CTA |
+| Strategy                  | Concept                                                      | Best for                                         | Structure                                                |
+| ------------------------- | ------------------------------------------------------------ | ------------------------------------------------ | -------------------------------------------------------- |
+| **A — Story-Driven**      | Personal experience as the thread, emotional resonance first | Reviews, personal shares, transformation         | Hook → Problem → Discovery → Experience → Conclusion     |
+| **B — Information-Dense** | Value-first, efficient information delivery                  | Tutorials, comparisons, checklists               | Core conclusion → Info card → Pros/Cons → Recommendation |
+| **C — Visual-First**      | Visual impact as core, minimal text                          | High-aesthetic products, lifestyle, mood content | Hero image → Detail shots → Lifestyle scene → CTA        |
 
 ## Reference Images
 
 User-supplied refs are **separate from** the internal "image-1 as anchor" chain (Step 3) — they layer on top of it.
 
 **Intake**: via `--ref <files...>` or paths pasted in conversation.
+
 - File path → copy to `refs/NN-ref-{slug}.{ext}`
 - Pasted with no path → ask for the path, or extract style traits as a text fallback
 
 **Usage modes** (per reference):
 
-| Usage | Effect |
-|-------|--------|
-| `direct` | Pass the file to the backend (typically on image 1 only, so the anchor propagates through the chain) |
-| `style` | Extract style traits and append to every card's prompt body |
-| `palette` | Extract hex colors and append to every card's prompt body |
+| Usage     | Effect                                                                                               |
+| --------- | ---------------------------------------------------------------------------------------------------- |
+| `direct`  | Pass the file to the backend (typically on image 1 only, so the anchor propagates through the chain) |
+| `style`   | Extract style traits and append to every card's prompt body                                          |
+| `palette` | Extract hex colors and append to every card's prompt body                                            |
 
 Record refs in each affected card's prompt frontmatter:
 
@@ -285,11 +287,11 @@ image-cards/{topic-slug}/
 
 Check these paths in order; first hit wins:
 
-| Path | Scope |
-|------|-------|
-| `.xhs-skills/xhs-images-design/EXTEND.md` | Project |
-| `${XDG_CONFIG_HOME:-$HOME/.config}/xhs-skills/xhs-images-design/EXTEND.md` | XDG |
-| `$HOME/.xhs-skills/xhs-images-design/EXTEND.md` | User home |
+| Path                                                                       | Scope     |
+| -------------------------------------------------------------------------- | --------- |
+| `.xhs-skills/xhs-images-design/EXTEND.md`                                  | Project   |
+| `${XDG_CONFIG_HOME:-$HOME/.config}/xhs-skills/xhs-images-design/EXTEND.md` | XDG       |
+| `$HOME/.xhs-skills/xhs-images-design/EXTEND.md`                            | User home |
 
 - **Found** → read, parse, print a summary (style / layout / watermark / language), continue.
 - **Not found + interactive** → run first-time setup (see `references/config/first-time-setup.md`) and save before anything else. Do NOT analyze content or ask style questions until preferences exist — this keeps first-run behavior predictable.
@@ -334,9 +336,9 @@ Then ask one question — three paths. Verbatim option copy: `references/confirm
 
 **Path C — Detailed mode**: two sub-confirmations.
 
-- *Step 2a — Content understanding*: ask selling points (multi-select), audience, style preference (authentic / professional / aesthetic / auto), optional context. Update `analysis.md`.
-- *Step 2b — Three outline variants*: generate `outline-strategy-a.md`, `outline-strategy-b.md`, `outline-strategy-c.md`. Each MUST have a different structure AND a different recommended style — include `style_reason` in the frontmatter. Page-count heuristic: A ~4-6, B ~3-5, C ~3-4. Template: `references/workflows/outline-template.md`; frontmatter example in `references/confirmation.md`.
-- *Step 2c — Selection*: ask three questions (outline A/B/C/Combined, style, visual elements). Save selected/merged outline to `outline.md` → Step 3.
+- _Step 2a — Content understanding_: ask selling points (multi-select), audience, style preference (authentic / professional / aesthetic / auto), optional context. Update `analysis.md`.
+- _Step 2b — Three outline variants_: generate `outline-strategy-a.md`, `outline-strategy-b.md`, `outline-strategy-c.md`. Each MUST have a different structure AND a different recommended style — include `style_reason` in the frontmatter. Page-count heuristic: A ~4-6, B ~3-5, C ~3-4. Template: `references/workflows/outline-template.md`; frontmatter example in `references/confirmation.md`.
+- _Step 2c — Selection_: ask three questions (outline A/B/C/Combined, style, visual elements). Save selected/merged outline to `outline.md` → Step 3.
 
 ### Step 3: Generate Images
 
@@ -392,42 +394,42 @@ Images: N total
 
 ## Content Breakdown Principles
 
-| Position | Purpose | Typical layout |
-|----------|---------|----------------|
-| Cover (image 1) | Hook + visual impact | `sparse` |
+| Position         | Purpose              | Typical layout                                        |
+| ---------------- | -------------------- | ----------------------------------------------------- |
+| Cover (image 1)  | Hook + visual impact | `sparse`                                              |
 | Content (middle) | Core value per image | `balanced` / `dense` / `list` / `comparison` / `flow` |
-| Ending (last) | CTA / summary | `sparse` or `balanced` |
+| Ending (last)    | CTA / summary        | `sparse` or `balanced`                                |
 
 For the style × layout compatibility matrix, see the **Style × Layout Matrix** above.
 
 ## Image Modification
 
-| Action | How |
-|--------|-----|
-| Edit | Update `prompts/NN-{type}-{slug}.md` **first**, then regenerate with the same session ID |
-| Add | Specify position, create prompt, generate, renumber subsequent files `NN+1`, update outline |
-| Delete | Remove files, renumber subsequent `NN-1`, update outline |
+| Action | How                                                                                         |
+| ------ | ------------------------------------------------------------------------------------------- |
+| Edit   | Update `prompts/NN-{type}-{slug}.md` **first**, then regenerate with the same session ID    |
+| Add    | Specify position, create prompt, generate, renumber subsequent files `NN+1`, update outline |
+| Delete | Remove files, renumber subsequent `NN-1`, update outline                                    |
 
 Always update the prompt file before regenerating — it's the source of truth and makes changes reproducible.
 
 ## References
 
-| File | Content |
-|------|---------|
-| `references/confirmation.md` | Verbatim AskUserQuestion copy for every confirmation path |
-| `references/style-presets.md` | Full preset shortcut definitions |
-| `references/presets/<style>.md` | Per-style element definitions |
-| `references/palettes/<name>.md` | Per-palette color definitions |
-| `references/elements/canvas.md` | Aspect ratios, safe zones, grid layouts |
-| `references/elements/image-effects.md` | Cutout, stroke, filters |
-| `references/elements/typography.md` | Decorated text, tags, text direction |
-| `references/elements/decorations.md` | Emphasis marks, backgrounds, doodles, frames |
-| `references/workflows/analysis-framework.md` | Content analysis framework |
-| `references/workflows/outline-template.md` | Outline template with layout guide |
-| `references/workflows/prompt-assembly.md` | Prompt assembly guide |
-| `references/config/preferences-schema.md` | EXTEND.md schema |
-| `references/config/first-time-setup.md` | First-time setup flow |
-| `references/config/watermark-guide.md` | Watermark configuration |
+| File                                         | Content                                                   |
+| -------------------------------------------- | --------------------------------------------------------- |
+| `references/confirmation.md`                 | Verbatim AskUserQuestion copy for every confirmation path |
+| `references/style-presets.md`                | Full preset shortcut definitions                          |
+| `references/presets/<style>.md`              | Per-style element definitions                             |
+| `references/palettes/<name>.md`              | Per-palette color definitions                             |
+| `references/elements/canvas.md`              | Aspect ratios, safe zones, grid layouts                   |
+| `references/elements/image-effects.md`       | Cutout, stroke, filters                                   |
+| `references/elements/typography.md`          | Decorated text, tags, text direction                      |
+| `references/elements/decorations.md`         | Emphasis marks, backgrounds, doodles, frames              |
+| `references/workflows/analysis-framework.md` | Content analysis framework                                |
+| `references/workflows/outline-template.md`   | Outline template with layout guide                        |
+| `references/workflows/prompt-assembly.md`    | Prompt assembly guide                                     |
+| `references/config/preferences-schema.md`    | EXTEND.md schema                                          |
+| `references/config/first-time-setup.md`      | First-time setup flow                                     |
+| `references/config/watermark-guide.md`       | Watermark configuration                                   |
 
 ## Notes
 
