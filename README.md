@@ -53,7 +53,7 @@ git clone https://github.com/tensorslab/xhs-skills.git
 cd xhs-skills
 ```
 
-可以将本项目放到支持 Skills 的客户端目录，例如：
+可以将本项目skills 目录中所有skill 放到支持 Skills 的客户端目录，例如：
 
 - Claude：`~/.claude/skills/`
 - Alma：`~/.config/Alma/skills/`
@@ -261,9 +261,6 @@ xhs-skills/
 
 - [comeonzhj/Auto-Redbook-Skills](https://github.com/comeonzhj/Auto-Redbook-Skills) - 原上游仓库，为本项目早期形态提供了重要基础
 - [JimLiu/baoyu-skills](https://github.com/JimLiu/baoyu-skills) - `xhs-images-design` 原始技能来源，感谢 JimLiu 的出色工作
-- [Playwright](https://playwright.dev/) - 浏览器自动化渲染
-- [Marked](https://marked.js.org/) - Markdown 解析
-- [xhs](https://github.com/ReaJason/xhs) - 小红书 API 客户端
 
 ---
 
