@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import argparse
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -10,7 +12,20 @@ except ImportError:
     sys.exit(1)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="登录小红书并保存 Cookie 到 .env")
+    parser.add_argument(
+        "--env-path",
+        default=os.getenv("XHS_ENV_PATH") or str(Path.cwd() / ".env"),
+        help="Cookie 保存路径（默认: 当前工作目录下的 .env）",
+    )
+    return parser.parse_args()
+
+
 async def main():
+    args = parse_args()
+    env_path = Path(args.env_path).expanduser().resolve()
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False)
         context = await browser.new_context()
@@ -18,7 +33,7 @@ async def main():
 
         await page.goto("https://www.xiaohongshu.com")
         print("\n🌐 请在浏览器中完成小红书登录...")
-        print("💡 登录成功后，脚本将自动获取 Cookie 并保存到 .env 文件\n")
+        print(f"💡 登录成功后，脚本将自动获取 Cookie 并保存到 {env_path}\n")
 
         # 记录页面加载后的初始 web_session 值
         initial_cookies = await context.cookies()
@@ -56,10 +71,10 @@ async def main():
             await asyncio.sleep(2)
 
         if cookie_string:
-            env_path = Path(".env")
+            env_path.parent.mkdir(parents=True, exist_ok=True)
             if env_path.exists():
                 lines = env_path.read_text(encoding="utf-8").splitlines()
-                lines = [l for l in lines if not l.startswith("XHS_COOKIE=")]
+                lines = [line for line in lines if not line.startswith("XHS_COOKIE=")]
                 lines.append(f"XHS_COOKIE={cookie_string}")
                 content = "\n".join(lines) + "\n"
             else:

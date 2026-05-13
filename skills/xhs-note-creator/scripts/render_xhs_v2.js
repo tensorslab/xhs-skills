@@ -666,7 +666,7 @@ function parseArgs() {
 使用方法: node render_xhs_v2.js <markdown_file> [options]
 
 选项:
-  -o, --output-dir <dir>   输出目录（默认为当前工作目录）
+  -o, --output-dir <dir>   输出目录（默认与 Markdown 文件所在目录相同）
   -s, --style <style>      样式主题（默认: purple）
   --list-styles           列出所有可用样式
   --help                  显示帮助信息
@@ -687,7 +687,7 @@ function parseArgs() {
   }
 
   let markdownFile = null
-  let outputDir = process.cwd()
+  let outputDir = null
   let style = 'purple'
 
   for (let i = 0; i < args.length; i++) {
@@ -717,6 +717,8 @@ function parseArgs() {
     console.error(`❌ 错误: 文件不存在 - ${markdownFile}`)
     process.exit(1)
   }
+
+  outputDir = outputDir || path.dirname(path.resolve(markdownFile))
 
   return { markdownFile, outputDir, style }
 }

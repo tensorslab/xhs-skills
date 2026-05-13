@@ -65,12 +65,12 @@ def load_note_from_file(filepath: str) -> str:
 
 def _env_paths() -> List[Path]:
     """返回 .env 文件的候选路径列表"""
-    return [
-        Path.cwd() / ".env",
-        Path(__file__).parent / ".env",
-        Path(__file__).parent.parent / ".env",
-        Path(__file__).parent.parent.parent / ".env",
-    ]
+    env_paths = []
+    configured_path = os.getenv("XHS_ENV_PATH")
+    if configured_path:
+        env_paths.append(Path(configured_path).expanduser())
+    env_paths.append(Path.cwd() / ".env")
+    return env_paths
 
 
 def _find_env_path() -> Optional[Path]:
@@ -81,7 +81,7 @@ def _find_env_path() -> Optional[Path]:
     return None
 
 
-def _launch_quick_login() -> tuple[Optional[str], Optional[Path]]:
+def _launch_quick_login(env_path: Path) -> tuple[Optional[str], Optional[Path]]:
     """启动 quick_login.py 脚本获取 Cookie，返回 (cookie, env_path) 或 (None, None)"""
     script_path = Path(__file__).parent / "quick_login.py"
     if not script_path.exists():
@@ -93,8 +93,7 @@ def _launch_quick_login() -> tuple[Optional[str], Optional[Path]]:
     print("   登录成功后将自动保存 Cookie\n")
 
     result = subprocess.run(
-        [sys.executable, str(script_path)],
-        cwd=str(script_path.parent),
+        [sys.executable, str(script_path), "--env-path", str(env_path)],
     )
 
     if result.returncode != 0:
@@ -102,14 +101,13 @@ def _launch_quick_login() -> tuple[Optional[str], Optional[Path]]:
         return None, None
 
     # 重新加载 .env 文件获取刚保存的 Cookie
-    env_path = _find_env_path()
-    if env_path:
+    if env_path.exists():
         load_dotenv(env_path, override=True)
 
     return os.getenv("XHS_COOKIE"), env_path
 
 
-def load_cookie() -> tuple[str, Path]:
+def load_cookie() -> tuple[str, Optional[Path]]:
     """从 .env 文件加载 Cookie，若不存在、无效或过期则自动删除并重新获取。
     返回 (cookie, env_path)，env_path 为 .env 文件的绝对路径。
     """
@@ -126,7 +124,7 @@ def load_cookie() -> tuple[str, Path]:
         if "web_session" not in cookies_dict or "a1" not in cookies_dict:
             print("⚠️ Cookie 缺少必要字段 (web_session/a1)，需要重新获取")
             need_refresh = True
-        elif is_cookie_expired(cookie):
+        elif is_cookie_expired(env_path):
             need_refresh = True
 
         if need_refresh:
@@ -135,7 +133,8 @@ def load_cookie() -> tuple[str, Path]:
 
     if not cookie:
         print("⚠️ 未找到有效的 XHS_COOKIE，将启动浏览器获取...")
-        cookie, env_path = _launch_quick_login()
+        env_path = env_path or Path.cwd() / ".env"
+        cookie, env_path = _launch_quick_login(env_path)
 
     if not cookie:
         print("\n❌ 无法获取 Cookie，请手动运行以下脚本获取:")
@@ -403,15 +402,9 @@ def main():
     parser.add_argument("--title", "-t", default=None, help="笔记标题（必填，不超过20字）")
     parser.add_argument("--desc", "-d", default=None, help="笔记描述/正文内容（--note 优先）")
     parser.add_argument("--images", "-i", nargs="+", required=True, help="图片文件路径（可以多个）")
-    parser.add_argument(
-        "--post-time", default=None, help="定时发布时间（格式：2024-01-01 12:00:00）"
-    )
-    parser.add_argument(
-        "--api-mode", action="store_true", help="使用 API 模式发布（需要 xhs-api 服务运行）"
-    )
-    parser.add_argument(
-        "--api-url", default=None, help="API 服务地址（默认: http://localhost:5005）"
-    )
+    parser.add_argument("--post-time", default=None, help="定时发布时间（格式：2024-01-01 12:00:00）")
+    parser.add_argument("--api-mode", action="store_true", help="使用 API 模式发布（需要 xhs-api 服务运行）")
+    parser.add_argument("--api-url", default=None, help="API 服务地址（默认: http://localhost:5005）")
     parser.add_argument("--dry-run", action="store_true", help="仅验证，不实际发布")
 
     args = parser.parse_args()

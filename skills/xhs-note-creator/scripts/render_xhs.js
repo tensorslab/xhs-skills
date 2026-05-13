@@ -7,7 +7,7 @@
  *     node render_xhs.js <markdown_file> [options]
  *
  * 选项:
- *     --output-dir, -o     输出目录（默认为当前工作目录）
+ *     --output-dir, -o     输出目录（默认与 Markdown 文件所在目录相同）
  *     --theme, -t          排版主题：default, playful-geometric, neo-brutalism, 等
  *     --mode, -m           分页模式：separator, auto-fit, auto-split, dynamic
  *     --width, -w          图片宽度（默认 1080）
@@ -91,7 +91,7 @@ function parseArgs() {
   const args = process.argv.slice(2)
   const options = {
     markdownFile: null,
-    outputDir: process.cwd(),
+    outputDir: null,
     theme: 'default',
     mode: 'separator',
     width: DEFAULT_WIDTH,
@@ -162,7 +162,7 @@ function printHelp() {
     node render_xhs.js <markdown_file> [options]
 
 选项:
-    --output-dir, -o     输出目录（默认为当前工作目录）
+    --output-dir, -o     输出目录（默认与 Markdown 文件所在目录相同）
     --theme, -t          排版主题
     --mode, -m           分页模式
     --width, -w          图片宽度（默认 1080）
@@ -567,6 +567,10 @@ async function main() {
   if (!fs.existsSync(options.markdownFile)) {
     console.error(`❌ 错误: 文件不存在 - ${options.markdownFile}`)
     process.exit(1)
+  }
+
+  if (!options.outputDir) {
+    options.outputDir = path.dirname(path.resolve(options.markdownFile))
   }
 
   if (!AVAILABLE_THEMES.includes(options.theme)) {

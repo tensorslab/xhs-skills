@@ -719,7 +719,10 @@ def main():
     )
     parser.add_argument("markdown_file", nargs="?", help="Markdown 文件路径")
     parser.add_argument(
-        "--output-dir", "-o", default=os.getcwd(), help="输出目录（默认为当前工作目录）"
+        "--output-dir",
+        "-o",
+        default=None,
+        help="输出目录（默认与 Markdown 文件所在目录相同）",
     )
     parser.add_argument(
         "--style",
@@ -744,7 +747,8 @@ def main():
         print(f"❌ 错误: 文件不存在 - {args.markdown_file}")
         sys.exit(1)
 
-    asyncio.run(render_markdown_to_cards(args.markdown_file, args.output_dir, args.style))
+    output_dir = args.output_dir or os.path.dirname(os.path.abspath(args.markdown_file))
+    asyncio.run(render_markdown_to_cards(args.markdown_file, output_dir, args.style))
 
 
 if __name__ == "__main__":

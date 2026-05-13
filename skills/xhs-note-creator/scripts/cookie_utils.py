@@ -3,7 +3,7 @@
 import os
 import time
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 def parse_cookie(cookie_string: str) -> Dict[str, str]:
@@ -17,35 +17,22 @@ def parse_cookie(cookie_string: str) -> Dict[str, str]:
     return cookies
 
 
-def is_cookie_expired(cookie_string: str, max_age_hours: float = 24) -> bool:
-    """基于 ets/loadts 时间戳判断 Cookie 是否过期。
+def is_cookie_expired(env_path: Optional[Path], max_age_hours: float = 24) -> bool:
+    """基于 .env 文件最后修改时间判断 Cookie 是否过期。
 
     XHS 的 web_session 通常 24 小时过期，a1 约 30 天。
-    以 ets（Cookie 创建时间戳）为准，超过 max_age_hours 即视为过期。
+    Cookie 内的 ets/loadts 可能早于本次保存时间，因此以 .env mtime 为准。
     """
-    cookies = parse_cookie(cookie_string)
-
-    timestamp = None
-    for key in ("ets", "loadts"):
-        ts_str = cookies.get(key, "")
-        if ts_str and ts_str.isdigit():
-            ts = int(ts_str)
-            if ts > 1e12:
-                ts /= 1000
-            timestamp = ts
-            break
-
-    if timestamp is None:
+    if env_path is None or not env_path.exists():
         return False
 
+    timestamp = env_path.stat().st_mtime
     age_hours = (time.time() - timestamp) / 3600
     if age_hours > max_age_hours:
         from datetime import datetime
 
-        created = datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M")
-        print(
-            f"⚠️ Cookie 已过期（创建于 {created}，已 {age_hours:.1f} 小时，阈值 {max_age_hours}h）"
-        )
+        modified = datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M")
+        print(f"⚠️ Cookie 已过期（.env 修改于 {modified}，已 {age_hours:.1f} 小时，阈值 {max_age_hours}h）")
         return True
     return False
 

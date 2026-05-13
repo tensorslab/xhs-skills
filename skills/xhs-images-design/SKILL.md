@@ -258,8 +258,16 @@ At generation time: verify files exist. Image 1 with `usage: direct` + backend t
 
 ## File Layout
 
+Before writing any source, analysis, outline, prompt, or image file, create a project-level topic folder:
+
+1. Use today's date as the first-level directory in `YYYYMMDD` format, for example `20260513/`.
+2. Extract one concrete keyword from the topic and use it in the directory name. Do not use the generic word `subject`. The format is `<keyword>_N`, for example `20260513/skincare_1/`; if that keyword already exists today, increment `N`.
+3. Put every generated Markdown file and image for the current topic inside that subject folder. This includes source files, `analysis.md`, outlines, prompts, refs, and final PNG images.
+
+Keyword rules: use one short topic-specific word, preferably lowercase English or pinyin, with only letters, numbers, hyphens, or underscores. Examples: skincare → `skincare_1`, coffee → `coffee_1`, AI 工具 → `aitools_1`.
+
 ```
-image-cards/{topic-slug}/
+{YYYYMMDD}/{keyword}_N/
 ├── source-{slug}.{ext}
 ├── analysis.md
 ├── outline-strategy-{a,b,c}.md    # Path C only
@@ -269,7 +277,9 @@ image-cards/{topic-slug}/
 └── refs/                          # only if --ref used
 ```
 
-**Slug**: 2-4 words, kebab-case. "AI 工具推荐" → `ai-tools-recommend`. On collision, append `-YYYYMMDD-HHMMSS`.
+**Subject folder**: choose the smallest positive `N` not already used for that keyword under today's date directory. Example: if `20260513/skincare_1/` exists, use `20260513/skincare_2/`.
+
+**Slug**: 2-4 words, kebab-case. "AI 工具推荐" → `ai-tools-recommend`. On file collision inside the subject folder, append `-YYYYMMDD-HHMMSS`.
 
 **Backup rule** (applies throughout): before overwriting any file — source, outline, prompt, image — rename the existing one to `<name>-backup-YYYYMMDD-HHMMSS.<ext>`. This protects user edits.
 
@@ -301,11 +311,11 @@ Check these paths in order; first hit wins:
 
 ### Step 1: Analyze Content → `analysis.md`
 
-1. Save the source (backup rule applies if `source.md` exists).
+1. Create the date/subject folder first, then save the source inside it (backup rule applies if `source.md` exists).
 2. Run the deep analysis in `references/workflows/analysis-framework.md`: content type, hook potential, audience, engagement signals, visual opportunity map, swipe flow.
 3. Detect source language, pick recommended image count (2-10).
 4. Auto-recommend strategy + style + layout + palette using the **Auto-Selection** table above.
-5. Write everything to `analysis.md`.
+5. Write everything to `analysis.md` in the subject folder.
 
 ### Step 2: Smart Confirm ⚠️ REQUIRED
 
@@ -348,7 +358,7 @@ With confirmed outline + style + layout + palette:
 
 For each image (cover, content, ending):
 
-1. Write the full prompt to `prompts/NN-{type}-{slug}.md` in the user's preferred language (backup rule applies).
+1. Write the full prompt to `prompts/NN-{type}-{slug}.md` under the subject folder in the user's preferred language (backup rule applies).
 2. Generate:
    - **Image 1**: no `--ref` (establishes the anchor).
    - **Images 2+**: add `--ref <path-to-image-01.png>`.

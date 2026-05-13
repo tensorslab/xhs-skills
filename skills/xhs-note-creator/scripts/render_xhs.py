@@ -351,7 +351,9 @@ def generate_card_html(
         "pink-notebook": "linear-gradient(135deg, #FFE1EC 0%, #FFD5E4 52%, #FFF6F9 100%)",
     }
     bg = theme_backgrounds.get(theme, theme_backgrounds["default"])
-    page_number_color = "rgba(143, 78, 96, 0.70)" if theme == "pink-notebook" else "rgba(255, 255, 255, 0.8)"
+    page_number_color = (
+        "rgba(143, 78, 96, 0.70)" if theme == "pink-notebook" else "rgba(255, 255, 255, 0.8)"
+    )
 
     # 根据模式设置不同的容器样式
     if mode == "dynamic":
@@ -572,10 +574,12 @@ async def auto_split_content(
                 await page.set_content(html)
                 await page.wait_for_timeout(300)
 
-                content_height = await page.evaluate("""() => {
+                content_height = await page.evaluate(
+                    """() => {
                     const content = document.querySelector('.card-content');
                     return content ? content.scrollHeight : 0;
-                }""")
+                }"""
+                )
 
                 # 内容区域的可用高度（去除 padding 等）
                 available_height = height - 220  # 50*2 padding + 60*2 inner padding
@@ -676,7 +680,10 @@ def main():
     )
     parser.add_argument("markdown_file", help="Markdown 文件路径")
     parser.add_argument(
-        "--output-dir", "-o", default=os.getcwd(), help="输出目录（默认为当前工作目录）"
+        "--output-dir",
+        "-o",
+        default=None,
+        help="输出目录（默认与 Markdown 文件所在目录相同）",
     )
     parser.add_argument(
         "--theme", "-t", choices=AVAILABLE_THEMES, default="sketch", help="排版主题（默认: sketch）"
@@ -708,10 +715,12 @@ def main():
         print(f"❌ 错误: 文件不存在 - {args.markdown_file}")
         sys.exit(1)
 
+    output_dir = args.output_dir or os.path.dirname(os.path.abspath(args.markdown_file))
+
     asyncio.run(
         render_markdown_to_cards(
             args.markdown_file,
-            args.output_dir,
+            output_dir,
             theme=args.theme,
             mode=args.mode,
             width=args.width,
