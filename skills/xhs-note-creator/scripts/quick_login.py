@@ -11,22 +11,15 @@ except ImportError:
     print("缺少依赖，请运行: pip install playwright python-dotenv && playwright install chromium")
     sys.exit(1)
 
-
-def _default_env_path() -> Path:
-    """默认保存到当前项目；若运行在 skill 内，则保存到 skill 同级父目录。"""
-    skill_dir = Path(__file__).parent.parent.resolve()
-    cwd = Path.cwd().resolve()
-    if cwd == skill_dir or skill_dir in cwd.parents:
-        return skill_dir.parent / ".env"
-    return cwd / ".env"
+from cookie_utils import get_default_env_path
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="登录小红书并保存 Cookie 到 .env")
     parser.add_argument(
         "--env-path",
-        default=os.getenv("XHS_ENV_PATH") or str(_default_env_path()),
-        help="Cookie 保存路径（默认: 当前项目 .env；若运行在 skill 内，则保存到 skill 同级父目录）",
+        default=os.getenv("XHS_ENV_PATH") or str(get_default_env_path()),
+        help="Cookie 保存路径（默认: 项目根目录 .env）",
     )
     return parser.parse_args()
 

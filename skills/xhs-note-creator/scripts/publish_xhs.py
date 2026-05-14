@@ -42,16 +42,14 @@ except ImportError as e:
     print("请运行: pip install python-dotenv requests")
     sys.exit(1)
 
-from cookie_utils import is_cookie_expired, parse_cookie, remove_cookie_from_all_envs
-
-
-def _default_env_path() -> Path:
-    """默认读取/保存当前项目 .env；若运行在 skill 内，则使用 skill 同级父目录 .env。"""
-    skill_dir = Path(__file__).parent.parent.resolve()
-    cwd = Path.cwd().resolve()
-    if cwd == skill_dir or skill_dir in cwd.parents:
-        return skill_dir.parent / ".env"
-    return cwd / ".env"
+from cookie_utils import (
+    find_env_path,
+    get_default_env_path,
+    get_env_paths,
+    is_cookie_expired,
+    parse_cookie,
+    remove_cookie_from_all_envs,
+)
 
 
 def load_note_from_file(filepath: str) -> str:
@@ -70,24 +68,6 @@ def load_note_from_file(filepath: str) -> str:
     content = re.sub(r"\n{2,}", "\n​\n", content)
 
     return content
-
-
-def _env_paths() -> List[Path]:
-    """返回 .env 文件的候选路径列表"""
-    env_paths = []
-    configured_path = os.getenv("XHS_ENV_PATH")
-    if configured_path:
-        env_paths.append(Path(configured_path).expanduser())
-    env_paths.append(_default_env_path())
-    return env_paths
-
-
-def _find_env_path() -> Optional[Path]:
-    """查找存在的 .env 文件路径"""
-    for env_path in _env_paths():
-        if env_path.exists():
-            return env_path
-    return None
 
 
 def _launch_quick_login(env_path: Path) -> tuple[Optional[str], Optional[Path]]:
@@ -117,48 +97,43 @@ def _launch_quick_login(env_path: Path) -> tuple[Optional[str], Optional[Path]]:
 
 
 def load_cookie() -> tuple[str, Optional[Path]]:
-    """从 .env 文件加载 Cookie，若不存在、无效或过期则自动删除并重新获取。
+    """从 .env 加载 Cookie；无效或过期时自动重新获取。
     返回 (cookie, env_path)，env_path 为 .env 文件的绝对路径。
     """
-    env_path = _find_env_path()
+    env_path = find_env_path()
     if env_path:
-        load_dotenv(env_path)
+        load_dotenv(env_path, override=True)
 
     cookie = os.getenv("XHS_COOKIE")
 
-    need_refresh = False
+    if cookie and _is_cookie_valid(cookie, env_path):
+        return cookie, env_path
 
+    # Cookie 无效或不存在，清除后重新获取
     if cookie:
-        cookies_dict = parse_cookie(cookie)
-        if "web_session" not in cookies_dict or "a1" not in cookies_dict:
-            print("⚠️ Cookie 缺少必要字段 (web_session/a1)，需要重新获取")
-            need_refresh = True
-        elif is_cookie_expired(env_path):
-            need_refresh = True
+        remove_cookie_from_all_envs(get_env_paths())
 
-        if need_refresh:
-            remove_cookie_from_all_envs(_env_paths())
-            cookie = None
-
-    if not cookie:
-        print("⚠️ 未找到有效的 XHS_COOKIE，将启动浏览器获取...")
-        env_path = env_path or _default_env_path()
-        cookie, env_path = _launch_quick_login(env_path)
+    print("⚠️ 未找到有效的 XHS_COOKIE，将启动浏览器获取...")
+    env_path = env_path or get_default_env_path()
+    cookie, env_path = _launch_quick_login(env_path)
 
     if not cookie:
         print("\n❌ 无法获取 Cookie，请手动运行以下脚本获取:")
         print(f"   python {Path(__file__).parent / 'quick_login.py'}")
         sys.exit(1)
 
-    # 验证关键 Cookie 字段
-    cookies_dict = parse_cookie(cookie)
-    if "web_session" not in cookies_dict:
-        print("⚠️ Cookie 中缺少 web_session，登录可能未完成")
-        print("请手动运行以下脚本重试:")
-        print(f"   python {Path(__file__).parent / 'quick_login.py'}")
-        sys.exit(1)
-
     return cookie, env_path
+
+
+def _is_cookie_valid(cookie: str, env_path: Optional[Path]) -> bool:
+    """检查 Cookie 格式是否完整且未过期。"""
+    cookies_dict = parse_cookie(cookie)
+    if "web_session" not in cookies_dict or "a1" not in cookies_dict:
+        print("⚠️ Cookie 缺少必要字段 (web_session/a1)，需要重新获取")
+        return False
+    if is_cookie_expired(env_path):
+        return False
+    return True
 
 
 def validate_cookie(cookie_string: str) -> bool:

@@ -1,9 +1,36 @@
-"""XHS Cookie 过期检测与清理工具"""
+"""XHS Cookie 工具：路径解析、过期检测、清理。"""
 
 import os
 import time
 from pathlib import Path
 from typing import Dict, List, Optional
+
+# 本文件位于 .../skills/xhs-note-creator/scripts/cookie_utils.py
+# parents[2] = skills/（所有 skill 的同级父目录，.env 保存在此）
+_SKILL_PARENT_DIR = Path(__file__).resolve().parents[2]
+
+
+def get_default_env_path() -> Path:
+    """默认 .env 路径：skill 同级父目录下的 .env（不依赖 CWD）。"""
+    return _SKILL_PARENT_DIR / ".env"
+
+
+def get_env_paths() -> List[Path]:
+    """返回 .env 候选路径列表（按优先级）。"""
+    paths: List[Path] = []
+    configured = os.getenv("XHS_ENV_PATH")
+    if configured:
+        paths.append(Path(configured).expanduser().resolve())
+    paths.append(get_default_env_path())
+    return paths
+
+
+def find_env_path() -> Optional[Path]:
+    """查找第一个存在的 .env 文件路径。"""
+    for p in get_env_paths():
+        if p.exists():
+            return p
+    return None
 
 
 def parse_cookie(cookie_string: str) -> Dict[str, str]:
