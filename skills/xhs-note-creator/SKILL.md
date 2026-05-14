@@ -167,7 +167,7 @@ python scripts/quick_login.py
 **关键点**：
 - 必须使用 `Network.getAllCookies`（CDP）或 Playwright `context.cookies()`，不能用 `document.cookie`（无法获取 httpOnly 的 `web_session`）
 - 有效 Cookie 必须包含 `a1` 和 `web_session` 两个关键字段
-- `.env` 文件查找路径：优先使用 `XHS_ENV_PATH` 指定路径，否则使用当前工作目录下的 `.env`；不得保存到 skill 自身的 `scripts/.env`
+- `.env` 文件查找路径：优先使用 `XHS_ENV_PATH` 指定路径；否则使用当前项目 `.env`；如果当前目录位于 skill 内部，则使用 skill 同级父目录的 `.env`；不得保存到 skill 自身目录或 `scripts/.env`
 
 #### 5.2 发布笔记
 

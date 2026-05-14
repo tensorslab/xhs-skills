@@ -12,12 +12,21 @@ except ImportError:
     sys.exit(1)
 
 
+def _default_env_path() -> Path:
+    """默认保存到当前项目；若运行在 skill 内，则保存到 skill 同级父目录。"""
+    skill_dir = Path(__file__).parent.parent.resolve()
+    cwd = Path.cwd().resolve()
+    if cwd == skill_dir or skill_dir in cwd.parents:
+        return skill_dir.parent / ".env"
+    return cwd / ".env"
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="登录小红书并保存 Cookie 到 .env")
     parser.add_argument(
         "--env-path",
-        default=os.getenv("XHS_ENV_PATH") or str(Path.cwd() / ".env"),
-        help="Cookie 保存路径（默认: 当前工作目录下的 .env）",
+        default=os.getenv("XHS_ENV_PATH") or str(_default_env_path()),
+        help="Cookie 保存路径（默认: 当前项目 .env；若运行在 skill 内，则保存到 skill 同级父目录）",
     )
     return parser.parse_args()
 

@@ -45,6 +45,15 @@ except ImportError as e:
 from cookie_utils import is_cookie_expired, parse_cookie, remove_cookie_from_all_envs
 
 
+def _default_env_path() -> Path:
+    """默认读取/保存当前项目 .env；若运行在 skill 内，则使用 skill 同级父目录 .env。"""
+    skill_dir = Path(__file__).parent.parent.resolve()
+    cwd = Path.cwd().resolve()
+    if cwd == skill_dir or skill_dir in cwd.parents:
+        return skill_dir.parent / ".env"
+    return cwd / ".env"
+
+
 def load_note_from_file(filepath: str) -> str:
     """从纯文本方案文件读取描述内容。"""
     path = Path(filepath)
@@ -69,7 +78,7 @@ def _env_paths() -> List[Path]:
     configured_path = os.getenv("XHS_ENV_PATH")
     if configured_path:
         env_paths.append(Path(configured_path).expanduser())
-    env_paths.append(Path.cwd() / ".env")
+    env_paths.append(_default_env_path())
     return env_paths
 
 
@@ -133,7 +142,7 @@ def load_cookie() -> tuple[str, Optional[Path]]:
 
     if not cookie:
         print("⚠️ 未找到有效的 XHS_COOKIE，将启动浏览器获取...")
-        env_path = env_path or Path.cwd() / ".env"
+        env_path = env_path or _default_env_path()
         cookie, env_path = _launch_quick_login(env_path)
 
     if not cookie:
